@@ -74,7 +74,7 @@ void print_tree0(NODE *tree, int level)
     }
     else {
       for(i=0; i<level; i++) putchar(' ');
-      printf("%s\n", named(tree->type));
+      printf("%s\n",named(tree->type));
 /*       if (tree->type=='~') { */
 /*         for(i=0; i<level+2; i++) putchar(' '); */
 /*         printf("%p\n", tree->left); */
@@ -105,7 +105,8 @@ int main(int argc, char** argv)
     yyparse();
     tree = ans;
     printf("parse finished with %p\n", tree);
-    //print_tree(tree);
+    print_tree(tree);
+    printf("\n");
     interpret_tree(tree);
     return 0;
 }

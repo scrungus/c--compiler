@@ -30,6 +30,8 @@ VALUE* interpret_tree(NODE *tree){
     char t = (char)tree->type;
 
     switch(t){
+        default: printf("unknown token type %c\n",t); return NULL;
+        
         case '~':
         case 'D':
         //case 'd':

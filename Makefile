@@ -1,14 +1,20 @@
-OBJS = lex.yy.o C.tab.o symbol_table.o nodes.o main.o interpreter.o
-SRCS = lex.yy.c C.tab.c symbol_table.c nodes.c main.c interpreter.c
+OBJS = src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/main.o src/interpreter.o
+SRCS = src/lex.yy.c src/C.tab.c src/symbol_table.c src/nodes.c src/main.c src/interpreter.c
+
+#TEST_UNIT_OBJS =
+#TEST_UNIT_SRCS =
 CC = gcc
 
-all:	mycc
+all:	mycc #test
+
+#test: mycc
+
 
 clean:
 	rm ${OBJS}
 
 mycc:	${OBJS}
-	${CC} -g -o mycc ${OBJS} 
+	${CC} -g -o mycc ${OBJS} -I /headers
 
 lex.yy.c: C.flex
 	flex C.flex

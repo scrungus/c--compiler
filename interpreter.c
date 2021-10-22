@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "interpreter.h"
 #include "main.h"
 #include <stdio.h>
 #include "C.tab.h"
@@ -6,12 +7,24 @@
 extern NODE *tree;
 extern void print_tree(NODE *tree);
 
-int interpret_tree(NODE *tree){
-    if (tree==NULL) {printf("no tree received\n") ; return;}
+
+VALUE* make_value_int(int t, int val){
+    VALUE *value = malloc(sizeof(VALUE));
+    if (value == NULL) {perror("make_value_int failed\n"); exit(1);}
+
+    value->type = t;
+    value->integer = val;
+}
+
+VALUE* interpret_tree(NODE *tree){
+
+    VALUE *left, *right;
+
+    if (tree==NULL) {printf("no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
         TOKEN *t = (TOKEN *)tree->left;
         if (t->type == CONSTANT){
-            return t->value;
+            return make_value_int(INT,t->value);
         }
     }
     char t = (char)tree->type;
@@ -24,15 +37,25 @@ int interpret_tree(NODE *tree){
             return interpret_tree(tree->right);
         
         case '+':
-            return interpret_tree(tree->left)+interpret_tree(tree->right);
+            left = interpret_tree(tree->left);
+            right = interpret_tree(tree->right);
+            return make_value_int(INT,left->integer + right->integer);
         case '-':
-            return interpret_tree(tree->left)-interpret_tree(tree->right);
+            left = interpret_tree(tree->left);
+            right = interpret_tree(tree->right);
+            return make_value_int(INT,left->integer - right->integer);
         case '*':
-            return interpret_tree(tree->left)*interpret_tree(tree->right);
+            left = interpret_tree(tree->left);
+            right = interpret_tree(tree->right);
+            return make_value_int(INT,left->integer * right->integer);
         case '/':
-            return interpret_tree(tree->left)/interpret_tree(tree->right);
+            left = interpret_tree(tree->left);
+            right = interpret_tree(tree->right);
+            return make_value_int(INT,left->integer / right->integer);
         case '%':
-            return interpret_tree(tree->left)%interpret_tree(tree->right);
+            left = interpret_tree(tree->left);
+            right = interpret_tree(tree->right);
+            return make_value_int(INT,left->integer % right->integer);
     }
     switch(tree->type){
     case RETURN:  

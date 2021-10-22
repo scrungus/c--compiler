@@ -107,6 +107,7 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     printf("\n");
-    interpret_tree(tree);
+    printf("calling interpreter\n");
+    printf("RESULT : %i\n",interpret_tree(tree));
     return 0;
 }

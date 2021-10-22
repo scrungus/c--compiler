@@ -16,19 +16,26 @@ int interpret_tree(NODE *tree){
     }
     char t = (char)tree->type;
 
-    if(t == 'D'){ 
-        interpret_tree(tree->left);
-        interpret_tree(tree->right);
-    }
-    else if (t == 'd'){ 
-        interpret_tree(tree->right);
-        interpret_tree(tree->left);
-    }
-    else if (t== 'F'){ 
+    switch(t){
+        case '~':
+        case 'D':
+        //case 'd':
+            //interpret_tree(tree->left);
+            return interpret_tree(tree->right);
+        
+        case '+':
+            return interpret_tree(tree->left)+interpret_tree(tree->right);
+        case '-':
+            return interpret_tree(tree->left)-interpret_tree(tree->right);
+        case '*':
+            return interpret_tree(tree->left)*interpret_tree(tree->right);
+        case '/':
+            return interpret_tree(tree->left)/interpret_tree(tree->right);
+        case '%':
+            return interpret_tree(tree->left)%interpret_tree(tree->right);
     }
     switch(tree->type){
     case RETURN:  
-        printf("RESULT : %i\n",interpret_tree(tree->left));
-    }
-    return 1; 
+        return interpret_tree(tree->left);
+    } 
 }

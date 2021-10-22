@@ -17,7 +17,6 @@ typedef struct value {
     
 }VALUE;
 
-
 VALUE* interpret_tree(NODE*);
 
 #endif // INTERPRETER

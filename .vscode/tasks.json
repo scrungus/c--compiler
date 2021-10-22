@@ -13,7 +13,7 @@
         },
         "problemMatcher": {
           "owner": "cpp",
-          "fileLocation": ["relative", "${workspaceFolder}"],
+          "fileLocation": ["relative", "${workspaceFolder}/src"],
           "pattern": {
             "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
             "file": 1,

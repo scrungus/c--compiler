@@ -14,7 +14,7 @@ clean:
 	rm ${OBJS}
 
 mycc:	${OBJS}
-	${CC} -g -o mycc ${OBJS} -I /headers
+	${CC}  -I./headers/ -g -o mycc ${OBJS}
 
 lex.yy.c: C.flex
 	flex C.flex
@@ -23,7 +23,7 @@ C.tab.c:	C.y
 	bison -d -t -v C.y
 
 .c.o:
-	${CC} -g -c $*.c
+	${CC} -g -c -I./headers/ $*.c -o $*.o
 
 depend:	
 	${CC} -M $(SRCS) > .deps

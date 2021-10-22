@@ -10,7 +10,7 @@ extern void print_tree(NODE *tree);
 
 VALUE* make_value_int(int t, int val){
     VALUE *value = malloc(sizeof(VALUE));
-    if (value == NULL) {perror("make_value_int failed\n"); exit(1);}
+    if (value == NULL) {perror("fatal: make_value_int failed\n"); exit(1);}
 
     value->type = t;
     value->integer = val;
@@ -20,7 +20,7 @@ VALUE* interpret_tree(NODE *tree){
 
     VALUE *left, *right;
 
-    if (tree==NULL) {printf("no tree received\n") ; exit(1);}
+    if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
         TOKEN *t = (TOKEN *)tree->left;
         if (t->type == CONSTANT){
@@ -30,7 +30,7 @@ VALUE* interpret_tree(NODE *tree){
     char t = (char)tree->type;
 
     switch(t){
-        default: printf("unknown token type %c\n",t); return NULL;
+        default: printf("fatal: unknown token type '%c'\n",t); exit(1);
         
         case '~':
         case 'D':
@@ -60,6 +60,7 @@ VALUE* interpret_tree(NODE *tree){
             return make_value_int(INT,left->integer % right->integer);
     }
     switch(tree->type){
+    default: printf("fatal: unknown token type '%c'\n", tree->type); exit(1);
     case RETURN:  
         return interpret_tree(tree->left);
     } 

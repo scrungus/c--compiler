@@ -2,6 +2,7 @@
 #include "interpreter.h"
 #include "main.h"
 #include <stdio.h>
+#include <ctype.h>
 #include "C.tab.h"
 
 extern NODE *tree;
@@ -28,36 +29,37 @@ VALUE* interpret_tree(NODE *tree){
         }
     }
     char t = (char)tree->type;
-
-    switch(t){
-        default: printf("fatal: unknown token type '%c'\n",t); exit(1);
-        
-        case '~':
-        case 'D':
-        //case 'd':
-            //interpret_tree(tree->left);
-            return interpret_tree(tree->right);
-        
-        case '+':
-            left = interpret_tree(tree->left);
-            right = interpret_tree(tree->right);
-            return make_value_int(INT,left->integer + right->integer);
-        case '-':
-            left = interpret_tree(tree->left);
-            right = interpret_tree(tree->right);
-            return make_value_int(INT,left->integer - right->integer);
-        case '*':
-            left = interpret_tree(tree->left);
-            right = interpret_tree(tree->right);
-            return make_value_int(INT,left->integer * right->integer);
-        case '/':
-            left = interpret_tree(tree->left);
-            right = interpret_tree(tree->right);
-            return make_value_int(INT,left->integer / right->integer);
-        case '%':
-            left = interpret_tree(tree->left);
-            right = interpret_tree(tree->right);
-            return make_value_int(INT,left->integer % right->integer);
+    if (isgraph(t) || t==' ') {
+        switch(t){
+            default: printf("fatal: unknown token type '%c'\n",t); exit(1);
+            
+            case '~':
+            case 'D':
+            //case 'd':
+                //interpret_tree(tree->left);
+                return interpret_tree(tree->right);
+            
+            case '+':
+                left = interpret_tree(tree->left);
+                right = interpret_tree(tree->right);
+                return make_value_int(INT,left->integer + right->integer);
+            case '-':
+                left = interpret_tree(tree->left);
+                right = interpret_tree(tree->right);
+                return make_value_int(INT,left->integer - right->integer);
+            case '*':
+                left = interpret_tree(tree->left);
+                right = interpret_tree(tree->right);
+                return make_value_int(INT,left->integer * right->integer);
+            case '/':
+                left = interpret_tree(tree->left);
+                right = interpret_tree(tree->right);
+                return make_value_int(INT,left->integer / right->integer);
+            case '%':
+                left = interpret_tree(tree->left);
+                right = interpret_tree(tree->right);
+                return make_value_int(INT,left->integer % right->integer);
+        }
     }
     switch(tree->type){
     default: printf("fatal: unknown token type '%c'\n", tree->type); exit(1);

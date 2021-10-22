@@ -94,7 +94,7 @@ extern int yydebug;
 extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
-extern VALUE* interpret_tree(NODE *tree);
+extern VALUE* interpret_tree(NODE*);
 
 int main(int argc, char** argv)
 {

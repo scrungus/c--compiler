@@ -97,7 +97,12 @@ TAC *gen_tac(NODE *tree, int counter){
 
 
     if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
-
+    if (tree->type==LEAF){
+            TOKEN *t = (TOKEN *)tree->left;
+            if (t->type == CONSTANT){
+                return new_tac(no_op,t,NULL,new_dest(counter));
+            }
+        }
     char t = (char)tree->type;
     if (isgraph(t) || t==' ') {
         switch(t){

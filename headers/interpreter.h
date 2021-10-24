@@ -19,7 +19,8 @@ typedef struct value {
 
 enum tac_op
   {
-   tac_plus = 1
+    no_op = 0,
+    tac_plus = 1
   };
 
 typedef struct tac {

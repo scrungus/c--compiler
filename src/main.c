@@ -95,12 +95,19 @@ char* tac_ops[] = {"NO-OP","ADD"};
 void print_ic(TAC* tac){
 
   while(tac!=NULL){
-    printf("%s, %i, %i, %s\n",
-	   tac_ops[tac->op], // need to range check!
-	   tac->src1->value,
-	   tac->src2->value,
-	   tac->dst->lexeme);
-
+    if(tac->src2 == NULL){
+      printf("%s, %i, %s\n",
+      tac_ops[tac->op], // need to range check!
+      tac->src1->value,
+      tac->dst->lexeme);
+    }
+    else{
+      printf("%s, %i, %i, %s\n",
+      tac_ops[tac->op], // need to range check!
+      tac->src1->value,
+      tac->src2->value,
+      tac->dst->lexeme);
+    }
      tac=tac->next;
   }
     

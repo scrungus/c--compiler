@@ -17,6 +17,29 @@ VALUE* make_value_int(int t, int val){
     value->integer = val;
 }
 
+TAC* new_tac(int op, TOKEN* src1, TOKEN* src2, TOKEN* dst)
+{
+  TAC* ans = (TAC*)malloc(sizeof(TAC));
+  if (ans==NULL) {
+    printf("Error! memory not allocated.");
+    exit(0);
+  }
+  ans->op = op;
+  ans->src1 = src1;
+  ans->src2 = src2;
+  ans->dst = dst;
+  return ans;
+}
+
+TOKEN * new_dest(int counter){
+    TOKEN* dst = (TOKEN*)malloc(sizeof(TOKEN));
+    if(dst==NULL){printf("fatal: failed to generate destination\n");exit(1);}
+    dst->type=IDENTIFIER;
+    dst->lexeme = (char*)calloc(1,2);
+    sprintf(dst->lexeme,"t%i",counter);
+    return dst;
+}
+
 VALUE* interpret_tree(NODE *tree){
 
     VALUE *left, *right;
@@ -66,4 +89,43 @@ VALUE* interpret_tree(NODE *tree){
     case RETURN:  
         return interpret_tree(tree->left);
     } 
+}
+
+TAC *gen_tac(NODE *tree, int counter){
+
+    TOKEN *left, *right;
+
+
+    if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
+
+    char t = (char)tree->type;
+    if (isgraph(t) || t==' ') {
+        switch(t){
+            default: printf("fatal: unknown token type '%c'\n",t); exit(1);
+            
+            case '~':
+            case 'D':
+            //case 'd':
+                return gen_tac(tree->right,counter++);
+            
+            case '+':
+                left = (TOKEN *)tree->left->left;
+                right = (TOKEN *)tree->right->left;
+                return new_tac(tac_plus,left,right,new_dest(counter));
+            case '-':
+                
+            case '*':
+               
+            case '/':
+                
+            case '%':
+                ;
+        }
+    }
+    switch(tree->type){
+    default: printf("fatal: unknown token type '%c'\n", tree->type); exit(1);
+    case RETURN:  
+        return gen_tac(tree->left,counter++);
+    } 
+
 }

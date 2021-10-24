@@ -90,11 +90,28 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
+char* tac_ops[] = {"NO-OP","ADD"};
+
+void print_ic(TAC* tac){
+
+  while(tac!=NULL){
+    printf("%s, %i, %i, %s\n",
+	   tac_ops[tac->op], // need to range check!
+	   tac->src1->value,
+	   tac->src2->value,
+	   tac->dst->lexeme);
+
+     tac=tac->next;
+  }
+    
+}
+
 extern int yydebug;
 extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret_tree(NODE*);
+extern TAC* gen_tac(NODE*,int);
 
 int main(int argc, char** argv)
 {
@@ -109,5 +126,9 @@ int main(int argc, char** argv)
     printf("\n");
     printf("calling interpreter\n");
     printf("RESULT : %i\n",interpret_tree(tree)->integer);
+
+    printf("----------------------------------------------------------------\n");
+    printf("Generating TAC...\n");
+    print_ic(gen_tac(tree,0));
     return 0;
 }

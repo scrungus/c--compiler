@@ -90,7 +90,7 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"NO-OP","ADD"};
+char* tac_ops[] = {"NO-OP","ADD","SUB","DIV","MOD","MULT"};
 
 void print_ic(TAC* tac){
 

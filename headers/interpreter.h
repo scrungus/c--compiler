@@ -20,7 +20,11 @@ typedef struct value {
 enum tac_op
   {
     no_op = 0,
-    tac_plus = 1
+    tac_plus = 1,
+    tac_minus = 2,
+    tac_div = 3,
+    tac_mod = 4,
+    tac_mult = 5,
   };
 
 typedef struct tac {

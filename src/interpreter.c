@@ -118,13 +118,21 @@ TAC *gen_tac(NODE *tree, int counter){
                 right = (TOKEN *)tree->right->left;
                 return new_tac(tac_plus,left,right,new_dest(counter));
             case '-':
-                
+                left = (TOKEN *)tree->left->left;
+                right = (TOKEN *)tree->right->left;
+                return new_tac(tac_minus,left,right,new_dest(counter));
             case '*':
-               
+                left = (TOKEN *)tree->left->left;
+                right = (TOKEN *)tree->right->left;
+                return new_tac(tac_mult,left,right,new_dest(counter));
             case '/':
-                
+                left = (TOKEN *)tree->left->left;
+                right = (TOKEN *)tree->right->left;
+                return new_tac(tac_div,left,right,new_dest(counter));
             case '%':
-                ;
+                left = (TOKEN *)tree->left->left;
+                right = (TOKEN *)tree->right->left;
+                return new_tac(tac_mod,left,right,new_dest(counter));
         }
     }
     switch(tree->type){

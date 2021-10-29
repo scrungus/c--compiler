@@ -35,6 +35,8 @@ void test_case_return_literal_arithmetic(int op){
 
     TAC *result = gen_tac(tree,0);
 
+    assert(result->op == tac_proc);
+    result = result->next;
     assert(result->op == find_tac_code_for_op(op));
     assert(result->src1->value == VAL1);
     assert(result->src2->value == VAL1);

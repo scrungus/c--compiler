@@ -90,16 +90,27 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"NO-OP","ADD","SUB","DIV","MOD","MULT"};
+char* tac_ops[] = {"NO-OP","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC"};
 
 void print_ic(TAC* tac){
 
   while(tac!=NULL){
     if(tac->src2 == NULL){
-      printf("%s, %i, %s\n",
-      tac_ops[tac->op], // need to range check!
-      tac->src1->value,
-      tac->dst->lexeme);
+      if(tac->src1 == NULL){
+        printf("%s\n",tac_ops[tac->op]);
+      }
+      else{
+        printf("%s, %i, %s\n",
+        tac_ops[tac->op], // need to range check!
+        tac->src1->value,
+        tac->dst->lexeme);
+      }
+    }
+    else if(tac->dst == NULL){
+      printf("%s %s %i\n",
+      tac_ops[tac->op],
+      tac->src1->lexeme,
+      tac->src2->value);
     }
     else{
       printf("%s, %i, %i, %s\n",

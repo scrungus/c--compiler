@@ -25,6 +25,9 @@ enum tac_op
     tac_div = 3,
     tac_mod = 4,
     tac_mult = 5,
+
+    tac_proc = 6,
+    tac_endproc = 7
   };
 
 typedef struct tac {

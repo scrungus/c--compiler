@@ -25,6 +25,14 @@ TAC* new_tac(int op, TOKEN* src1, TOKEN* src2, TOKEN* dst)
     exit(0);
   }
   ans->op = op;
+  if(op==tac_endproc){
+      return ans;
+  }
+  if(op==tac_proc){
+      ans->src1 = src1;
+      ans->src2 = src2;
+      return ans;
+  }
   ans->src1 = src1;
   ans->src2 = src2;
   ans->dst = dst;
@@ -128,9 +136,17 @@ TAC *gen_tac(NODE *tree, int counter){
                 tac->next = gen_tac(tree->right,counter++);
                 return tac;
             case 'D':
-            //case 'd':
+                tac = gen_tac(tree->left,counter);
+                tac->next = gen_tac(tree->right,counter++);
+                tac->next->next = new_tac(tac_endproc,NULL,NULL,NULL);
+                return tac;
+            case 'd':
                 return gen_tac(tree->right,counter++);
-            
+            case 'F':
+                left = (TOKEN *)tree->left->left;
+                right = new_token(CONSTANT);
+                right->value = 0;
+                return new_tac(tac_proc, left, right,NULL);
             case '+':
                 left = (TOKEN *)tree->left->left;
                 right = (TOKEN *)tree->right->left;

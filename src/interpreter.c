@@ -40,6 +40,20 @@ TOKEN * new_dest(int counter){
     return dst;
 }
 
+VALUE *lookup_name(TOKEN * x, FRAME * frame){
+    while(frame != NULL){
+        BINDING *bindings = frame->bindings;
+        while(bindings != NULL){
+            if(bindings->name == x){
+                return bindings->value;
+            }
+            bindings = bindings->next;
+        }
+        frame = frame->next;
+    }
+    printf("fatal: unbound variable!\n");exit(1);
+}
+
 VALUE* interpret_tree(NODE *tree){
 
     VALUE *left, *right;
@@ -57,6 +71,7 @@ VALUE* interpret_tree(NODE *tree){
             default: printf("fatal: unknown token type '%c'\n",t); exit(1);
             
             case '~':
+
             case 'D':
             //case 'd':
                 //interpret_tree(tree->left);
@@ -94,7 +109,7 @@ VALUE* interpret_tree(NODE *tree){
 TAC *gen_tac(NODE *tree, int counter){
 
     TOKEN *left, *right;
-
+    TAC *tac;
 
     if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
@@ -109,6 +124,9 @@ TAC *gen_tac(NODE *tree, int counter){
             default: printf("fatal: unknown token type '%c'\n",t); exit(1);
             
             case '~':
+                tac = gen_tac(tree->left,counter++);
+                tac->next = gen_tac(tree->right,counter++);
+                return tac;
             case 'D':
             //case 'd':
                 return gen_tac(tree->right,counter++);

@@ -35,6 +35,20 @@ TOKEN* dst;
 struct tac* next;
 } TAC ;
 
+typedef struct binding {
+  TOKEN* name;
+  VALUE* value;
+  struct binding* next;
+} BINDING;
+
+typedef struct frame {
+  BINDING* bindings;
+  struct frame* next;
+}FRAME;
+
+
 VALUE* interpret_tree(NODE*);
+
+
 
 #endif // INTERPRETER

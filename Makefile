@@ -11,7 +11,7 @@ test: mycc
 	$(CC) -g -c test/test_utilities.c -I./headers/ -o objs/test_utilities.o
 	$(CC) -g test/test_interpreter.c -I./headers/ -o test_interpreter $(TEST_UNIT_OBJS)
 	$(CC) -g test/test_compiler.c -I./headers/ -o test_compiler $(TEST_UNIT_OBJS)
-
+	sh test/run_tests.sh
 
 clean:
 	rm ${OBJS} ${TEST_UNITS}

@@ -1,18 +1,20 @@
 OBJS = src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/main.o src/interpreter.o
 SRCS = src/lex.yy.c src/C.tab.c src/symbol_table.c src/nodes.c src/main.c src/interpreter.c
 
-TEST_UNIT_OBJS =src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/interpreter.o
-#TEST_UNIT_SRCS =
+TEST_UNIT_OBJS =src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/interpreter.o  objs/test_utilities.o
+TEST_UNITS = test_compiler test_interpreter
 CC = gcc
 
 all:	mycc test
 
 test: mycc
+	$(CC) -g -c test/test_utilities.c -I./headers/ -o objs/test_utilities.o
 	$(CC) -g test/test_interpreter.c -I./headers/ -o test_interpreter $(TEST_UNIT_OBJS)
+	$(CC) -g test/test_compiler.c -I./headers/ -o test_compiler $(TEST_UNIT_OBJS)
 
 
 clean:
-	rm ${OBJS}
+	rm ${OBJS} ${TEST_UNITS}
 
 mycc:	${OBJS}
 	${CC}  -I./headers/ -g -o mycc ${OBJS}

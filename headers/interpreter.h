@@ -1,21 +1,11 @@
 #include "nodes.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "environment.h"
 
 #ifndef INTERPRETER
 #define INTERPRETER
 
-typedef struct value {
-    int type;
-    union 
-    {
-        int integer;
-        int boolean;
-        char* string;
-
-    } ;
-    
-}VALUE;
 
 enum tac_op
   {
@@ -36,21 +26,10 @@ TOKEN* src1;
 TOKEN* src2;
 TOKEN* dst;
 struct tac* next;
-} TAC ;
-
-typedef struct binding {
-  TOKEN* name;
-  VALUE* value;
-  struct binding* next;
-} BINDING;
-
-typedef struct frame {
-  BINDING* bindings;
-  struct frame* next;
-}FRAME;
+}TAC;
 
 
-VALUE* interpret_tree(NODE*);
+VALUE* interpret_tree(NODE*,FRAME*);
 
 
 

@@ -128,12 +128,13 @@ extern int yydebug;
 extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
-extern VALUE* interpret_tree(NODE*);
+extern VALUE* interpret_tree(NODE*,FRAME*);
 extern TAC* gen_tac(NODE*,int);
 
 int main(int argc, char** argv)
 {
     NODE* tree;
+    FRAME* e = malloc(sizeof(FRAME));
     if (argc>1 && strcmp(argv[1],"-d")==0) yydebug = 1;
     init_symbtable();
     printf("--C COMPILER\n");
@@ -143,7 +144,13 @@ int main(int argc, char** argv)
     print_tree(tree);
     printf("\n");
     printf("calling interpreter\n");
-    printf("RESULT : %i\n",interpret_tree(tree)->integer);
+    VALUE* result = interpret_tree(tree,e);
+    if(result != NULL){
+      printf("RESULT : %i\n",interpret_tree(tree,e)->integer);
+    }
+    else{
+      printf("RESULT: NULL\n");
+    }
 
     printf("----------------------------------------------------------------\n");
     printf("Generating TAC...\n");

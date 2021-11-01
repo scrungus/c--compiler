@@ -5,7 +5,7 @@
 #include "assert.h"
 #include "test_utilities.h"
 
-extern VALUE* interpret_tree(NODE *tree);
+extern VALUE* interpret_tree(NODE*,FRAME*);
 extern NODE* make_leaf(TOKEN*);
 extern NODE* make_node(int, NODE*, NODE*);
 extern TOKEN* make_token(int);
@@ -32,7 +32,9 @@ void test_case_return_literal_arithmetic(int op){
     NODE* tree = construct_basic_empty_function();
     tree->right->left = operation;
 
-    VALUE *result = interpret_tree(tree);
+    FRAME* e = malloc(sizeof(FRAME));
+
+    VALUE *result = interpret_tree(tree,e);
 
     assert(result->integer ==check_val(op));
     printf("test for '%c' interpreter literal arithmetic passed!\n",op);

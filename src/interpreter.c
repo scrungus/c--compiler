@@ -85,6 +85,9 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
             case ';':
                 interpret_tree(tree->left,e);
                 return interpret_tree(tree->right,e);
+            case '=':
+                interpret_tree(tree->left,e);
+                return assign_to_name(tree->left->left,e,interpret_tree(tree->right,e));   
             case '+':
                 left = interpret_tree(tree->left,e);
                 right = interpret_tree(tree->right,e);

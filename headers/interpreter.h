@@ -32,5 +32,4 @@ struct tac* next;
 VALUE* interpret_tree(NODE*,FRAME*);
 
 
-
 #endif // INTERPRETER

@@ -4,6 +4,7 @@
 #include "token.h"
 #include "assert.h"
 #include "test_utilities.h"
+#include "gentac.h"
 
 extern TAC *gen_tac(NODE*,int);
 extern NODE* make_leaf(TOKEN*);
@@ -29,18 +30,21 @@ void test_case_return_literal_arithmetic(int op){
     NODE *x2 = make_leaf(t2);
 
     NODE* operation = make_node(op, x1,x2);
-
-    NODE* tree = construct_basic_empty_function();
+    TOKEN *main = new_token(STRING_LITERAL);
+    main->lexeme = "main";
+    NODE* tree = construct_basic_empty_function(main,0);
     tree->right->left = operation;
 
     TAC *result = gen_tac(tree,0);
-
+    
     assert(result->op == tac_proc);
+    assert(result->proc.name==main);
+    assert(result->proc.arity==0);
     result = result->next;
     assert(result->op == find_tac_code_for_op(op));
-    assert(result->src1->value == VAL1);
-    assert(result->src2->value == VAL1);
-    assert(result->dst != NULL);
+    assert(result->stac.src1->value == VAL1);
+    assert(result->stac.src2->value == VAL1);
+    assert(result->stac.dst != NULL);
     printf("test result for '%c' TAC code literal arithmetic passed!\n",op);
 }
 

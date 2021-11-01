@@ -4,6 +4,7 @@
 #include "C.tab.h"
 #include <string.h>
 #include "interpreter.h"
+#include "gentac.h"
 
 char *named(int t)
 {
@@ -95,31 +96,32 @@ char* tac_ops[] = {"NO-OP","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC"};
 void print_ic(TAC* tac){
 
   while(tac!=NULL){
-    if(tac->src2 == NULL){
-      if(tac->src1 == NULL){
-        printf("%s\n",tac_ops[tac->op]);
-      }
-      else{
-        printf("%s, %i, %s\n",
-        tac_ops[tac->op], // need to range check!
-        tac->src1->value,
-        tac->dst->lexeme);
-      }
+    switch(tac->op){
+      default: 
+        printf("%s %i %i %s\n",
+        tac_ops[tac->op],
+        tac->stac.src1->value,
+        tac->stac.src2->value,
+        tac->stac.dst->lexeme);
+        break;
+      case no_op:
+        printf("%s %i %s\n",
+        tac_ops[tac->op],
+        tac->lit.src1->value,
+        tac->lit.dst->lexeme);
+        break;
+      case tac_proc:
+        printf("%s %s %i\n",
+        tac_ops[tac->op],
+        tac->proc.name->lexeme,
+        tac->proc.arity);
+        break;
+      case tac_endproc:
+        printf("%s\n",
+        tac_ops[tac->op]);
+        break;
     }
-    else if(tac->dst == NULL){
-      printf("%s %s %i\n",
-      tac_ops[tac->op],
-      tac->src1->lexeme,
-      tac->src2->value);
-    }
-    else{
-      printf("%s, %i, %i, %s\n",
-      tac_ops[tac->op], // need to range check!
-      tac->src1->value,
-      tac->src2->value,
-      tac->dst->lexeme);
-    }
-     tac=tac->next;
+    tac = tac->next;
   }
     
 }

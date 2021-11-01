@@ -30,6 +30,7 @@ struct tac* next;
 
 
 VALUE* interpret_tree(NODE*,FRAME*);
+VALUE* make_value_int(int,int);
 
 
 #endif // INTERPRETER

@@ -1,5 +1,8 @@
 #include "environment.h"
 #include "interpreter.h"
+#include "C.tab.h"
+
+extern VALUE* make_value_int(int,int);
 
 VALUE *lookup_name(TOKEN * x, FRAME * frame){
     while(frame != NULL){
@@ -35,7 +38,7 @@ VALUE *declare_name(TOKEN * x, FRAME * frame){
     BINDING *new = malloc(sizeof(BINDING));
     if(new != NULL){
         new->name = x;
-        new->value = (VALUE*)0;
+        new->value = make_value_int(INT,0);
         new->next = bindings;
         frame->bindings=new;
         return new->value;

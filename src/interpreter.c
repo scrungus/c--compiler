@@ -18,6 +18,7 @@ VALUE* make_value_int(int t, int val){
 
     value->type = t;
     value->integer = val;
+    return value;
 }
 
 TAC* new_tac(int op, TOKEN* src1, TOKEN* src2, TOKEN* dst)
@@ -75,9 +76,8 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
             default: printf("fatal: unknown token type '%c'\n",t); exit(1);
             
             case '~':
-                if(tree->right->type == INT){
-                    return interpret_tree(tree->right,e);
-                }
+                //interpret_tree(tree->left,e);
+                return interpret_tree(tree->right,e);
             case 'D':
             //case 'd':
                 //interpret_tree(tree->left);
@@ -111,7 +111,7 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
         }
     }
     switch(tree->type){
-        default: printf("fatal: unknown token type '%c'\n", tree->type); exit(1);
+        default: printf("fatal: unknown token type '%i'\n", tree->type); exit(1);
         case RETURN:  
             return interpret_tree(tree->left,e);
     } 

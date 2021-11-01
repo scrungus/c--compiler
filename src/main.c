@@ -146,7 +146,7 @@ int main(int argc, char** argv)
     printf("calling interpreter\n");
     VALUE* result = interpret_tree(tree,e);
     if(result != NULL){
-      printf("RESULT : %i\n",interpret_tree(tree,e)->integer);
+      printf("RESULT : %i\n",result->integer);
     }
     else{
       printf("RESULT: NULL\n");

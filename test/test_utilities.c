@@ -7,10 +7,11 @@
 
 NODE* construct_basic_empty_function(TOKEN* name, int arity){
     TOKEN *v = new_token(VOID);
+    NODE *vn = make_leaf(v);
     NODE *main_node = make_leaf(name);
     NODE *f;
     if(arity == 0){
-        f = make_node('F',main_node,v); 
+        f = make_node('F',main_node,vn); 
     }
     NODE *d = make_node('d', NULL,f);
     NODE *tree = make_node('D',d,make_node(RETURN, NULL, NULL));

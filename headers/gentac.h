@@ -1,9 +1,9 @@
 #include "token.h"
+#include "nodes.h"
 #ifndef GENTAC
 #define GENTAC 
 enum tac_op
   {
-    no_op = 0,
     tac_plus = 1,
     tac_minus = 2,
     tac_div = 3,
@@ -11,7 +11,9 @@ enum tac_op
     tac_mult = 5,
 
     tac_proc = 6,
-    tac_endproc = 7
+    tac_endproc = 7,
+    tac_load = 8,
+    tac_store = 9
   };
 
 typedef struct simple_tac {
@@ -25,18 +27,18 @@ typedef struct proc {
   int arity;
 }PROC;
 
-typedef struct literal {
+typedef struct load {
   TOKEN* src1;
   TOKEN* dst;
-}LITERAL;
+}LOAD;
 
 typedef struct tac {
 int op ;
-union {STAC stac; PROC proc; LITERAL lit};
+union {STAC stac; PROC proc; LOAD ld;};
 struct tac* next;
 }TAC;
 
-
+TAC* gen_tac(NODE*);
 
 
 #endif

@@ -91,24 +91,30 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"NO-OP","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC"};
+char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE"};
 
 void print_ic(TAC* tac){
 
   while(tac!=NULL){
     switch(tac->op){
       default: 
-        printf("%s %i %i %s\n",
+        printf("%s %s %s %s\n",
         tac_ops[tac->op],
-        tac->stac.src1->value,
-        tac->stac.src2->value,
+        tac->stac.src1->lexeme,
+        tac->stac.src2->lexeme,
         tac->stac.dst->lexeme);
         break;
-      case no_op:
+      case tac_load:
         printf("%s %i %s\n",
         tac_ops[tac->op],
-        tac->lit.src1->value,
-        tac->lit.dst->lexeme);
+        tac->ld.src1->value,
+        tac->ld.dst->lexeme);
+        break;
+      case tac_store:
+        printf("%s %s %s\n",
+        tac_ops[tac->op],
+        tac->ld.src1->lexeme,
+        tac->ld.dst->lexeme);
         break;
       case tac_proc:
         printf("%s %s %i\n",
@@ -131,7 +137,7 @@ extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret_tree(NODE*,FRAME*);
-extern TAC* gen_tac(NODE*,int);
+extern TAC* gen_tac(NODE*);
 
 int main(int argc, char** argv)
 {
@@ -145,7 +151,7 @@ int main(int argc, char** argv)
     printf("parse finished with %p\n", tree);
     print_tree(tree);
     printf("\n");
-    printf("calling interpreter\n");
+    printf("Calling interpreter...\n");
     VALUE* result = interpret_tree(tree,e);
     if(result != NULL){
       printf("RESULT : %i\n",result->integer);
@@ -156,6 +162,6 @@ int main(int argc, char** argv)
 
     printf("----------------------------------------------------------------\n");
     printf("Generating TAC...\n");
-    print_ic(gen_tac(tree,0));
+    print_ic(gen_tac(tree));
     return 0;
 }

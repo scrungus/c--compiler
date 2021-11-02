@@ -111,6 +111,12 @@ TAC *gen_tac0(NODE *tree, TOKEN *currdst, int counter){
             case 'F':
                 left = (TOKEN *)tree->left->left;
                 return new_proc(left,0);
+            case ';':
+                tac = gen_tac0(tree->left,currdst,counter);
+                last = find_last(tac);
+                currdst = new_dest(++counter); 
+                last->next = gen_tac0(tree->right,currdst,counter);
+                return tac;
             case '+':
                 left = new_dest(++counter);
                 tac = gen_tac0(tree->left,left,counter);

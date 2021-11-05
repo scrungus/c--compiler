@@ -22,6 +22,25 @@ VALUE* make_value_int(int t, int val){
     return value;
 }
 
+VALUE* interpret_tilde(NODE*tree, FRAME* e){
+    TOKEN* t;
+    if(tree->left->left->type==INT){
+        if(tree->right->type == LEAF){
+            t = (TOKEN *)tree->right->left;
+            if(lookup_name(t,e) == NULL){return declare_name(t,e);}
+            else {printf("error: multiple declarations of %s",t->lexeme);exit(1);}
+        }
+        else if((char)tree->right->type == '='){
+                t = (TOKEN *)tree->right->left->left;
+            if(lookup_name(t,e) == NULL){declare_name(t,e);}
+            else {printf("error: multiple declarations of variable '%s'\n",t->lexeme);exit(1);}
+            return assign_to_name(t,e,interpret_tree(tree->right->right,e));
+        }
+    }
+    interpret_tree(tree->left,e);
+    return interpret_tree(tree->right,e);
+}
+
 VALUE* interpret_tree(NODE *tree, FRAME* e){
 
     VALUE *left, *right;
@@ -36,7 +55,7 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
         else if (t->type == IDENTIFIER){
             VALUE *v = lookup_name(t,e);
             if (v==NULL){
-                return declare_name(t,e);
+                printf("error: undefined variable %s\n",t->lexeme);
             }
             else{return v;}
         }
@@ -47,8 +66,7 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
             default: printf("fatal: unknown token type '%c'\n",c); exit(1);
             
             case '~':
-                //interpret_tree(tree->left,e);
-                return interpret_tree(tree->right,e);
+                return interpret_tilde(tree,e);
             case 'D':
             //case 'd':
                 //interpret_tree(tree->left);

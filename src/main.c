@@ -105,10 +105,18 @@ void print_ic(TAC* tac){
         tac->stac.dst->lexeme);
         break;
       case tac_load:
-        printf("%s %i %s\n",
-        tac_ops[tac->op],
-        tac->ld.src1->value,
-        tac->ld.dst->lexeme);
+        if(tac->ld.src1->type == CONSTANT){
+          printf("%s %i %s\n",
+          tac_ops[tac->op],
+          tac->ld.src1->value,
+          tac->ld.dst->lexeme);
+        }
+        else{
+          printf("%s %s %s\n",
+          tac_ops[tac->op],
+          tac->ld.src1->lexeme,
+          tac->ld.dst->lexeme);
+        }
         break;
       case tac_store:
         printf("%s %s %s\n",

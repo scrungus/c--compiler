@@ -39,6 +39,7 @@ struct tac* next;
 }TAC;
 
 TAC* gen_tac(NODE*);
+TAC* gen_tac0(NODE*, TOKEN*, int);
 
 
 #endif

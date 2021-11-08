@@ -73,7 +73,8 @@ extern int yydebug;
     WHILE = 274,                   /* WHILE  */
     CONTINUE = 275,                /* CONTINUE  */
     BREAK = 276,                   /* BREAK  */
-    RETURN = 277                   /* RETURN  */
+    RETURN = 277,                  /* RETURN  */
+    BOOL = 278
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

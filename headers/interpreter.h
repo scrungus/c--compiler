@@ -7,7 +7,7 @@
 #define INTERPRETER
 
 VALUE* interpret_tree(NODE*,FRAME*);
-VALUE* make_value_int(int,int);
+VALUE* make_value_int(int);
 
 
 #endif // INTERPRETER

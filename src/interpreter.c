@@ -3,6 +3,7 @@
 #include "environment.h"
 #include "main.h"
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include "C.tab.h"
 #include "value.h"
@@ -12,6 +13,28 @@ extern void print_tree(NODE *tree);
 extern VALUE *lookup_name(TOKEN*, FRAME*);
 extern VALUE *assign_to_name(TOKEN*, FRAME*,VALUE*);
 extern VALUE *declare_name(TOKEN*, FRAME*);
+extern VALUE *declare_func(TOKEN*,VALUE*, FRAME*);
+
+VALUE* new_closure(NODE* t, FRAME* e){
+    CLOSURE* c = malloc(sizeof(CLOSURE));
+    VALUE* v = malloc(sizeof(VALUE));
+    if(c == NULL || v == NULL){printf("fatal: cannot allocate memory for closure\n");exit(1);}
+    c->code=t;
+    c->env=e;
+    v->type = CLOS;
+    v->closure = c;
+    return v;
+}
+
+FRAME *extend_frame(FRAME* e, NODE *ids, NODE *args){
+    FRAME* new_frame = malloc(sizeof(FRAME));
+    BINDING *bindings = NULL;
+    new_frame->bindings = bindings;
+    //while (ids != NULL && args != NULL) {
+       declare_name((TOKEN*)ids->right->left,new_frame);
+       assign_to_name((TOKEN*)ids->right->right,new_frame,interpret_tree(args,e));
+    return new_frame;
+}
 
 VALUE* make_value_int(int val){
     VALUE *value = malloc(sizeof(VALUE));
@@ -65,6 +88,22 @@ VALUE* if_method(NODE* tree, FRAME* e){
     else{printf("error: condition is not boolean value\n");exit(1);}
 }
 
+VALUE* interpret(NODE* tree){
+    FRAME* e = malloc(sizeof(FRAME));
+    interpret_tree(tree,e);
+    while(e != NULL){
+        while (e->bindings != NULL){
+            if(strcmp(e->bindings->name->lexeme,"main")==0){
+                NODE* body = e->bindings->value->closure->code->right;
+                return interpret_tree(body,e);
+            }
+            e->bindings = e->bindings->next;
+        }
+        e = e->next;
+    }
+    printf("No main function. exiting...\n");exit(1);
+
+}
 VALUE* interpret_tree(NODE *tree, FRAME* e){
 
     VALUE *left, *right;
@@ -93,8 +132,8 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 return interpret_tilde(tree,e);
             case 'D':
             //case 'd':
-                //interpret_tree(tree->left);
-                return interpret_tree(tree->right, e);
+                t = (TOKEN *)tree->left->right->left->left;
+                return declare_func(t,new_closure(tree,e),e);
             case ';':
                 interpret_tree(tree->left,e);
                 return interpret_tree(tree->right,e);

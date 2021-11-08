@@ -144,7 +144,7 @@ extern int yydebug;
 extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
-extern VALUE* interpret_tree(NODE*,FRAME*);
+extern VALUE* interpret(NODE*);
 extern TAC* gen_tac(NODE*);
 
 int main(int argc, char** argv)
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
     print_tree(tree);
     printf("\n");
     printf("Calling interpreter...\n");
-    VALUE* result = interpret_tree(tree,e);
+    VALUE* result = interpret(tree);
     if(result != NULL){
       printf("RESULT : %i\n",result->integer);
     }

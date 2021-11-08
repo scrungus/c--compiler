@@ -1,6 +1,13 @@
-
 #ifndef VALUE_
 #define VALUE_
+
+typedef struct frame FRAME;
+
+typedef struct closure {
+FRAME* env;
+NODE* code;
+} CLOSURE;
+
 typedef struct value {
     int type;
     union 
@@ -8,6 +15,7 @@ typedef struct value {
         int integer;
         int boolean;
         char* string;
+        CLOSURE* closure;
 
     } ;
     

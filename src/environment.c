@@ -2,7 +2,7 @@
 #include "interpreter.h"
 #include "C.tab.h"
 
-extern VALUE* make_value_int(int,int);
+extern VALUE* make_value_int(int);
 
 VALUE *lookup_name(TOKEN * x, FRAME * frame){
     while(frame != NULL){
@@ -38,7 +38,19 @@ VALUE *declare_name(TOKEN * x, FRAME * frame){
     BINDING *new = malloc(sizeof(BINDING));
     if(new != NULL){
         new->name = x;
-        new->value = make_value_int(INT,0);
+        new->value = make_value_int(0);
+        new->next = bindings;
+        frame->bindings=new;
+        return new->value;
+    }
+    printf("fatal: binding creation failed!\n");
+}
+VALUE *declare_func(TOKEN * x, VALUE* val, FRAME * frame){
+    BINDING *bindings = frame->bindings;
+    BINDING *new = malloc(sizeof(BINDING));
+    if(new != NULL){
+        new->name = x;
+        new->value = val;
         new->next = bindings;
         frame->bindings=new;
         return new->value;

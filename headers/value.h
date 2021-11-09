@@ -20,4 +20,10 @@ typedef struct value {
     } ;
     
 }VALUE;
+
+typedef struct valuelist {
+    VALUE *value;
+    struct valuelist *next;
+}VALUELIST;
+
 #endif

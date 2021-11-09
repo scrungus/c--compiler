@@ -34,7 +34,7 @@ void test_case_return_literal_arithmetic(int op){
 
     FRAME* e = malloc(sizeof(FRAME));
 
-    VALUE *result = interpret_tree(tree,e);
+    VALUE *result = interpret_tree(tree->right,e);
 
     assert(result->integer ==check_val(op));
     printf("test for '%c' interpreter literal arithmetic passed!\n",op);

@@ -26,13 +26,13 @@ VALUE* new_closure(NODE* t, FRAME* e){
     return v;
 }
 
-FRAME *extend_frame(FRAME* e, NODE *ids, NODE *args){
+FRAME *extend_frame(FRAME* e, NODE *ids, VALUELIST *args){
     FRAME* new_frame = malloc(sizeof(FRAME));
     BINDING *bindings = NULL;
     new_frame->bindings = bindings;
     //while (ids != NULL && args != NULL) {
        declare_name((TOKEN*)ids->right->left,new_frame);
-       assign_to_name((TOKEN*)ids->right->right,new_frame,interpret_tree(args,e));
+       assign_to_name((TOKEN*)ids->right->left,new_frame,args->value);
     return new_frame;
 }
 
@@ -91,23 +91,67 @@ VALUE* if_method(NODE* tree, FRAME* e){
 VALUE* interpret(NODE* tree){
     FRAME* e = malloc(sizeof(FRAME));
     interpret_tree(tree,e);
-    while(e != NULL){
-        while (e->bindings != NULL){
-            if(strcmp(e->bindings->name->lexeme,"main")==0){
-                NODE* body = e->bindings->value->closure->code->right;
+    FRAME *ef = e;
+    while(ef != NULL){
+        BINDING* bindings = e->bindings;
+        while (bindings != NULL){
+            if(strcmp(bindings->name->lexeme,"main")==0){
+                NODE* body = bindings->value->closure->code->right;
                 return interpret_tree(body,e);
             }
-            e->bindings = e->bindings->next;
+            bindings = bindings->next;
         }
-        e = e->next;
+        ef = e->next;
     }
     printf("No main function. exiting...\n");exit(1);
 
 }
+
+CLOSURE *find_func(TOKEN* name, FRAME* e){
+    FRAME *ef = e;
+     while(ef != NULL){
+        BINDING* bindings = e->bindings;
+        while (bindings != NULL){
+            if(bindings->name ==  name){
+               return bindings->value->closure;
+            }
+            bindings = bindings->next;
+        }
+         ef = ef->next;
+     }
+     printf("No function %s in scope, exiting...\n",name->lexeme);exit(1);
+}
+
+NODE* formals(CLOSURE* f){
+    return f->code->left->right->right;
+}
+
+VALUE *call(NODE* name, FRAME* e, VALUELIST* args){
+    TOKEN* t = (TOKEN *)name;
+    CLOSURE *f = find_func(t,e);
+    FRAME* ef = extend_frame(e,formals(f),args);
+    ef->next = f->env;
+    return interpret_tree(f->code->right,ef);
+}
+
+VALUELIST* find_curr_values(NODE *t, FRAME* e,VALUELIST* values){
+    if(t->type == LEAF){
+        values->value = interpret_tree(t,e);
+        return values;
+    }
+    else{
+        if((char)t->type == ','){
+            values->value = interpret_tree(t->right,e);
+            values->next = find_curr_values(t,e,values);
+        }
+    }
+}
+
 VALUE* interpret_tree(NODE *tree, FRAME* e){
 
     VALUE *left, *right;
     TOKEN *t;
+    VALUELIST *values = malloc(sizeof(VALUELIST));
 
     if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
@@ -169,6 +213,8 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
             return interpret_tree(tree->left,e);
         case IF:
             return if_method(tree,e);
+        case APPLY:
+            return call(tree->left->left,e,find_curr_values(tree->right,e,values));
         case LE_OP:
             if(interpret_tree(tree->left,e)->integer <= interpret_tree(tree->right,e)->integer){
                 return make_value_bool(1);

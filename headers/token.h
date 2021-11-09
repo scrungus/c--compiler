@@ -13,6 +13,11 @@ typedef struct TOKEN
   struct TOKEN  *next;
 } TOKEN;
 
+typedef struct tokenlist{
+  TOKEN* name;
+  struct tokenlist *next;
+} TOKENLIST;
+
 extern TOKEN* new_token(int);
 
 #endif

@@ -26,13 +26,36 @@ VALUE* new_closure(NODE* t, FRAME* e){
     return v;
 }
 
+TOKENLIST* find_tokens(NODE* ids){
+    TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
+    if((char)ids->type == '~'){
+        tokens->name = (TOKEN*)ids->right->left;
+        return tokens;
+    }
+    else{
+        if((char)ids->type == ','){
+            tokens->name = (TOKEN*)ids->right->right->left;
+            tokens->next = find_tokens(ids->left);
+            return tokens;
+        }
+    }
+}
+
 FRAME *extend_frame(FRAME* e, NODE *ids, VALUELIST *args){
     FRAME* new_frame = malloc(sizeof(FRAME));
     BINDING *bindings = NULL;
     new_frame->bindings = bindings;
     //while (ids != NULL && args != NULL) {
-       declare_name((TOKEN*)ids->right->left,new_frame);
-       assign_to_name((TOKEN*)ids->right->left,new_frame,args->value);
+       TOKENLIST* tokens = find_tokens(ids);
+       while(tokens != NULL && args != NULL){
+            declare_name(tokens->name,new_frame);
+            assign_to_name(tokens->name,new_frame,args->value);
+            tokens=tokens->next;
+            args = args->next;
+       }
+       if(!(tokens == NULL && args == NULL)){
+           printf("error: invalid number of arguments and/or tokens, exiting...\n");exit(1);
+       }
     return new_frame;
 }
 
@@ -134,15 +157,18 @@ VALUE *call(NODE* name, FRAME* e, VALUELIST* args){
     return interpret_tree(f->code->right,ef);
 }
 
-VALUELIST* find_curr_values(NODE *t, FRAME* e,VALUELIST* values){
+VALUELIST* find_curr_values(NODE *t, FRAME* e){
+    VALUELIST *values = malloc(sizeof(VALUELIST));
     if(t->type == LEAF){
         values->value = interpret_tree(t,e);
+        values->next = NULL;
         return values;
     }
     else{
         if((char)t->type == ','){
             values->value = interpret_tree(t->right,e);
-            values->next = find_curr_values(t,e,values);
+            values->next = find_curr_values(t->left,e);
+            return values;
         }
     }
 }
@@ -151,7 +177,6 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
 
     VALUE *left, *right;
     TOKEN *t;
-    VALUELIST *values = malloc(sizeof(VALUELIST));
 
     if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
@@ -214,7 +239,7 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
         case IF:
             return if_method(tree,e);
         case APPLY:
-            return call(tree->left->left,e,find_curr_values(tree->right,e,values));
+            return call(tree->left->left,e,find_curr_values(tree->right,e));
         case LE_OP:
             if(interpret_tree(tree->left,e)->integer <= interpret_tree(tree->right,e)->integer){
                 return make_value_bool(1);

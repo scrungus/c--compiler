@@ -91,7 +91,7 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE"};
+char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE","IF","LABEL","GOTO"};
 
 void print_ic(TAC* tac){
 
@@ -133,6 +133,24 @@ void print_ic(TAC* tac){
       case tac_endproc:
         printf("%s\n",
         tac_ops[tac->op]);
+        break;
+      case tac_if:
+        printf("%s (%s%s%s) %s\n",
+        tac_ops[tac->op],
+        tac->ift.op1->lexeme, 
+        named(tac->ift.code),
+        tac->ift.op2->lexeme,
+        tac->ift.lbl->lexeme);
+        break;
+      case tac_lbl:
+        printf("%s %s\n",
+        tac_ops[tac->op],
+        tac->lbl.name->lexeme);
+        break;
+      case tac_goto:
+        printf("%s %s\n",
+        tac_ops[tac->op],
+        tac->gtl.lbl->lexeme);
         break;
     }
     tac = tac->next;

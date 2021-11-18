@@ -98,17 +98,28 @@ VALUE* interpret_tilde(NODE*tree, FRAME* e){
 
 VALUE* if_method(NODE* tree, FRAME* e){
     VALUE* condition = interpret_tree(tree->left,e);
-    NODE* consequent = tree->right->left;
-    NODE* alternative = tree->right->right;
-    if(condition->type == BOOL){
-        if(condition->boolean){
-            return interpret_tree(consequent,e);
+    if(tree->right->type == ELSE){
+        NODE* consequent = tree->right->left;
+        NODE* alternative = tree->right->right;
+        if(condition->type == BOOL){
+            if(condition->boolean){
+                return interpret_tree(consequent,e);
+            }
+            else{
+                return interpret_tree(alternative,e);
+            }
         }
-        else{
-            return interpret_tree(alternative,e);
-        }
+        else{printf("error: condition is not boolean value\n");exit(1);}
     }
-    else{printf("error: condition is not boolean value\n");exit(1);}
+    else{
+        NODE* consequent = tree->right;
+        if(condition->type == BOOL){
+            if(condition->boolean){
+                return interpret_tree(consequent,e);
+            }
+        }
+        else{printf("error: condition is not boolean value\n");exit(1);}
+    }
 }
 
 VALUE* interpret(NODE* tree){
@@ -132,8 +143,9 @@ VALUE* interpret(NODE* tree){
 
 CLOSURE *find_func(TOKEN* name, FRAME* e){
     FRAME *ef = e;
+    BINDING* bindings;
      while(ef != NULL){
-        BINDING* bindings = e->bindings;
+        bindings = ef->bindings;
         while (bindings != NULL){
             if(bindings->name ==  name){
                return bindings->value->closure;
@@ -159,17 +171,19 @@ VALUE *call(NODE* name, FRAME* e, VALUELIST* args){
 
 VALUELIST* find_curr_values(NODE *t, FRAME* e){
     VALUELIST *values = malloc(sizeof(VALUELIST));
-    if(t->type == LEAF){
+    char c = (char)t->type;
+    if(t->type == LEAF || c == '*' || c == '+' || c == '-' || c == '%'|| c == '/'  ){
         values->value = interpret_tree(t,e);
         values->next = NULL;
         return values;
     }
-    else{
-        if((char)t->type == ','){
+    else if((char)t->type == ','){
             values->value = interpret_tree(t->right,e);
             values->next = find_curr_values(t->left,e);
             return values;
-        }
+    }
+    else{
+        printf("fatal: invalid parameter in call.\n");exit(1);
     }
 }
 
@@ -204,7 +218,7 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 t = (TOKEN *)tree->left->right->left->left;
                 return declare_func(t,new_closure(tree,e),e);
             case ';':
-                interpret_tree(tree->left,e);
+                interpret_tree(tree->left,e); //HOW DO YOU STOP EXECUTING BELOW IF THIS RETURNS ??
                 return interpret_tree(tree->right,e);
             case '=':
                 interpret_tree(tree->left,e);

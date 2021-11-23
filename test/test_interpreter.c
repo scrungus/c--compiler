@@ -4,41 +4,62 @@
 #include "token.h"
 #include "assert.h"
 #include "test_utilities.h"
+#include <ctype.h>
 
-extern VALUE* interpret_tree(NODE*,FRAME*);
+extern VALUE* interpret(NODE*);
 extern NODE* make_leaf(TOKEN*);
 extern NODE* make_node(int, NODE*, NODE*);
 extern TOKEN* make_token(int);
 extern NODE* construct_basic_empty_function();
+extern NODE* construct_constant_arithmetic(int);
+extern NODE* construct_constant_arithmetic_triple(int);
+extern NODE* construct_identifier_arithmetic(int);
 
 int check_val(int op){
     switch(op){
         case '+': return VAL1+VAL1;
-        case '-': case '%': return 0;
+        case '-': return VAL1-VAL1;
+        case '%': return VAL1%VAL1;
         case '*': return VAL1*VAL1;
-        case '/': return 1;
+        case '/': return VAL1/VAL1;
+    }
+}
+
+int check_val_triple(int op){
+    switch(op){
+        case '+': return VAL1+VAL1+VAL1;
+        case '-': return VAL1-VAL1-VAL1;
+        case '%': return VAL1%VAL1%VAL1;
+        case '*': return VAL1*VAL1*VAL1;
+        case '/': return VAL1/VAL1/VAL1;
     }
 }
 
 void test_case_return_literal_arithmetic(int op){
-    TOKEN *t1 = new_token(CONSTANT); t1->value = VAL1;
-    TOKEN *t2 = new_token(CONSTANT); t2->value = VAL1;
+    
+    NODE* tree = construct_constant_arithmetic(op);
 
-    NODE *x1 = make_leaf(t1);
-    NODE *x2 = make_leaf(t2);
-
-    NODE* operation = make_node(op, x1,x2);
-
-    NODE* tree = construct_basic_empty_function();
-    tree->right->left = operation;
-
-    FRAME* e = malloc(sizeof(FRAME));
-
-    VALUE *result = interpret_tree(tree->right,e);
+    VALUE *result = interpret(tree);
 
     assert(result->integer ==check_val(op));
-    printf("test for '%c' interpreter literal arithmetic passed!\n",op);
 }
+
+void test_case_return_literal_arithmetic_triple(int op){
+    NODE* tree = construct_constant_arithmetic_triple(op);
+    VALUE *result = interpret(tree);
+
+    assert(result->integer ==check_val_triple(op));
+}
+
+void test_case_return_variable_arithmetic(int op){
+
+    NODE* tree = construct_identifier_arithmetic(op);
+
+    VALUE *result = interpret(tree);
+
+    assert(result->integer ==check_val(op));
+}
+
 
 int main(void)  {
 
@@ -48,5 +69,22 @@ int main(void)  {
     test_case_return_literal_arithmetic('/');
     test_case_return_literal_arithmetic('%');
     test_case_return_literal_arithmetic('*');
+    printf("Simple literal arithmetic tests passed\n");
+
+    test_case_return_literal_arithmetic_triple('+');
+    test_case_return_literal_arithmetic_triple('-');
+    test_case_return_literal_arithmetic_triple('/');
+    test_case_return_literal_arithmetic_triple('%');
+    test_case_return_literal_arithmetic_triple('*');
+    printf("Triple literal arithmetic tests passed\n");
+
+    test_case_return_variable_arithmetic('+');
+    test_case_return_variable_arithmetic('-');
+    test_case_return_variable_arithmetic('/');
+    test_case_return_variable_arithmetic('%');
+    test_case_return_variable_arithmetic('*');
+    printf("Simple variable arithmetic tests passed\n");
+
+
     return 0;
 }

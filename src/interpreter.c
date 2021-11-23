@@ -67,7 +67,7 @@ VALUE* make_value_int(int val){
     VALUE *value = malloc(sizeof(VALUE));
     if (value == NULL) {perror("fatal: make_value_int failed\n"); exit(1);}
 
-    value->type = INT;
+    value->type = CONSTANT;
     value->integer = val;
     return value;
 }

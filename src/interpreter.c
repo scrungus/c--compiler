@@ -15,6 +15,8 @@ extern VALUE *assign_to_name(TOKEN*, FRAME*,VALUE*);
 extern VALUE *declare_name(TOKEN*, FRAME*);
 extern VALUE *declare_func(TOKEN*,VALUE*, FRAME*);
 
+int r_early = 0, in_seq = 0;
+
 VALUE* new_closure(NODE* t, FRAME* e){
     CLOSURE* c = malloc(sizeof(CLOSURE));
     VALUE* v = malloc(sizeof(VALUE));
@@ -42,6 +44,8 @@ TOKENLIST* find_tokens(NODE* ids){
 }
 
 FRAME *extend_frame(FRAME* e, NODE *ids, VALUELIST *args){
+
+    if(ids == NULL && args == NULL) {return e;}
     FRAME* new_frame = malloc(sizeof(FRAME));
     BINDING *bindings = NULL;
     new_frame->bindings = bindings;
@@ -171,8 +175,9 @@ VALUE *call(NODE* name, FRAME* e, VALUELIST* args){
 
 VALUELIST* find_curr_values(NODE *t, FRAME* e){
     VALUELIST *values = malloc(sizeof(VALUELIST));
+    if(t == NULL) return NULL;
     char c = (char)t->type;
-    if(t->type == LEAF || c == '*' || c == '+' || c == '-' || c == '%'|| c == '/'  ){
+    if(t->type == LEAF || c == '*' || c == '+' || c == '-' || c == '%'|| c == '/' || t->type == APPLY){
         values->value = interpret_tree(t,e);
         values->next = NULL;
         return values;
@@ -218,7 +223,12 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 t = (TOKEN *)tree->left->right->left->left;
                 return declare_func(t,new_closure(tree,e),e);
             case ';':
-                interpret_tree(tree->left,e); //HOW DO YOU STOP EXECUTING BELOW IF THIS RETURNS ??
+                in_seq = 1;
+                left = interpret_tree(tree->left,e); //HOW DO YOU STOP EXECUTING BELOW IF THIS RETURNS ??
+                if(r_early){
+                    return left;
+                }
+                in_seq = 0;
                 return interpret_tree(tree->right,e);
             case '=':
                 interpret_tree(tree->left,e);
@@ -248,7 +258,10 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
     }
     switch(tree->type){
         default: printf("fatal: unknown token type '%i'\n", tree->type); exit(1);
-        case RETURN:  
+        case RETURN:
+            if(in_seq){
+                r_early = 1;
+            }  
             return interpret_tree(tree->left,e);
         case IF:
             return if_method(tree,e);

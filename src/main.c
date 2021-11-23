@@ -91,7 +91,63 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE","IF","LABEL","GOTO"};
+char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE","IF","LABEL","GOTO","CALL","RETURN"};
+
+void print_if(TAC* tac){
+  if(tac->ift.op1->type == IDENTIFIER && tac->ift.op2->type == IDENTIFIER){
+    printf("%s (%s%s%s) %s\n",
+    tac_ops[tac->op],
+    tac->ift.op1->lexeme, 
+    named(tac->ift.code),
+    tac->ift.op2->lexeme,
+    tac->ift.lbl->lexeme);
+  }
+  else if(tac->ift.op1->type == IDENTIFIER){
+    printf("%s (%s%s%d) %s\n",
+    tac_ops[tac->op],
+    tac->ift.op1->lexeme, 
+    named(tac->ift.code),
+    tac->ift.op2->value,
+    tac->ift.lbl->lexeme);
+  }
+  else if(tac->ift.op2->type == IDENTIFIER){
+    printf("%s (%d%s%s) %s\n",
+    tac_ops[tac->op],
+    tac->ift.op1->value, 
+    named(tac->ift.code),
+    tac->ift.op2->lexeme,
+    tac->ift.lbl->lexeme);
+  }
+  else{
+    printf("%s (%d%s%d) %s\n",
+    tac_ops[tac->op],
+    tac->ift.op1->value, 
+    named(tac->ift.code),
+    tac->ift.op2->value,
+    tac->ift.lbl->lexeme);
+  }
+  
+}
+
+void print_rtn(TAC* tac){
+  if(tac->rtn.type == tac_call){
+    printf("%s %s %s %i\n",
+    tac_ops[tac->op],
+    tac_ops[tac->rtn.type],
+    tac->rtn.call.name->lexeme,
+    tac->rtn.call.arity);
+  }
+  else if (tac->rtn.type == CONSTANT){
+    printf("%s %i\n",
+    tac_ops[tac->op],
+    tac->rtn.v->value);
+  }
+  else{
+    printf("%s %s\n",
+    tac_ops[tac->op],
+    tac->rtn.v->lexeme);
+  }
+}
 
 void print_ic(TAC* tac){
 
@@ -135,12 +191,7 @@ void print_ic(TAC* tac){
         tac_ops[tac->op]);
         break;
       case tac_if:
-        printf("%s (%s%s%s) %s\n",
-        tac_ops[tac->op],
-        tac->ift.op1->lexeme, 
-        named(tac->ift.code),
-        tac->ift.op2->lexeme,
-        tac->ift.lbl->lexeme);
+        print_if(tac);
         break;
       case tac_lbl:
         printf("%s %s\n",
@@ -151,6 +202,15 @@ void print_ic(TAC* tac){
         printf("%s %s\n",
         tac_ops[tac->op],
         tac->gtl.lbl->lexeme);
+        break;
+      case tac_call:
+        printf("%s %s %i\n",
+        tac_ops[tac->op],
+        tac->call.name->lexeme,
+        tac->call.arity);
+        break;
+      case tac_rtn:
+        print_rtn(tac);
         break;
     }
     tac = tac->next;

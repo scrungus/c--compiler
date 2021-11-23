@@ -1,7 +1,7 @@
-OBJS = src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/main.o src/interpreter.o src/environment.o src/gentac.o
-SRCS = src/lex.yy.c src/C.tab.c src/symbol_table.c src/nodes.c src/main.c src/interpreter.c src/environment.c src/gentac.c
+OBJS = src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/main.o src/interpreter.o src/environment.o src/gentac.o src/regstack.o
+SRCS = src/lex.yy.c src/C.tab.c src/symbol_table.c src/nodes.c src/main.c src/interpreter.c src/environment.c src/gentac.c src/regstack.c
 
-TEST_UNIT_OBJS =src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/interpreter.o  objs/test_utilities.o src/gentac.o src/environment.o
+TEST_UNIT_OBJS =src/lex.yy.o src/C.tab.o src/symbol_table.o src/nodes.o src/interpreter.o  objs/test_utilities.o src/gentac.o src/environment.o  src/regstack.o
 TEST_UNITS = test_compiler test_interpreter
 CC = gcc
 

@@ -2,6 +2,14 @@
 #include "nodes.h"
 #ifndef GENTAC
 #define GENTAC 
+
+
+typedef struct env {
+  int dstcounter;
+  int lblcounter;
+  TOKEN* currlbl;
+}ENV;
+
 enum tac_op
   {
     tac_plus = 1,
@@ -16,7 +24,9 @@ enum tac_op
     tac_store = 9,
     tac_if = 10,
     tac_lbl = 11,
-    tac_goto = 12
+    tac_goto = 12,
+    tac_call = 13,
+    tac_rtn = 14
   };
 
 typedef struct simple_tac {
@@ -50,14 +60,23 @@ typedef struct gotolbl {
   TOKEN* lbl;
 }GOTO;
 
+typedef struct call {
+ TOKEN* name; int arity;
+} CALL;
+
+typedef struct rtn { 
+  int type;
+  union {CALL call; TOKEN* v;};
+}RTN;
+
 typedef struct tac {
 int op ;
-union {STAC stac; PROC proc; LOAD ld; LABEL lbl; IFTEST ift; GOTO gtl;};
+union {STAC stac; PROC proc; LOAD ld; LABEL lbl; IFTEST ift; GOTO gtl; CALL call; RTN rtn;};
 struct tac* next;
 }TAC;
 
 TAC* gen_tac(NODE*);
-TAC* gen_tac0(NODE*, TOKEN*, int, TOKEN*, int);
+TAC* gen_tac0(NODE*, ENV*);
 
 
 #endif

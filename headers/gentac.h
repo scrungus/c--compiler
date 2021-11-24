@@ -75,6 +75,11 @@ union {STAC stac; PROC proc; LOAD ld; LABEL lbl; IFTEST ift; GOTO gtl; CALL call
 struct tac* next;
 }TAC;
 
+typedef struct bb { 
+  TAC* leader;
+  TAC** nexts;
+}BB;
+
 TAC* gen_tac(NODE*);
 TAC* gen_tac0(NODE*, ENV*);
 

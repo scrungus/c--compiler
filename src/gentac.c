@@ -44,15 +44,15 @@ TOKEN * new_dest(ENV *env){
     return dst;
 }
 
-TOKEN* get_dest(){
+TOKEN* get_dest(ENV *env){
     TOKEN* popped = pop();
     if(popped==NULL){printf("fatal: failed to get destination\n");exit(1);}
+    env->dstcounter--;
     return popped;
 }
 
 TOKEN* peep_dest(){
     TOKEN* peeped = peep();
-    if(peeped==NULL){printf("fatal: failed to get destination\n");exit(1);}
     return peeped;
 }
 
@@ -175,7 +175,7 @@ TAC* parse_tilde(NODE* tree, ENV* env){
         if(tree->right->type == LEAF){
             t = (TOKEN *)tree->right->left;
             TOKEN* new = new_token(CONSTANT);
-            TOKEN* reg = get_dest();
+            TOKEN* reg = get_dest(env);
             new->value = 0;
             tac = new_load(new,reg);
             tac->next = new_store(reg,t);
@@ -280,7 +280,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
     if (tree==NULL) {printf("fatal: no tree received\n") ; exit(1);}
     if (tree->type==LEAF){
             t = (TOKEN *)tree->left;
-            tac = new_load(t,get_dest());
+            tac = new_load(t,get_dest(env));
             return tac;
         }
     char c = (char)tree->type;
@@ -328,7 +328,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 right = find_last_dest(last->next);
                 last = find_last(last);
                 new_dest(env);
-                last->next = new_stac(tac_plus,left,right,get_dest());
+                last->next = new_stac(tac_plus,left,right,get_dest(env));
                 return tac;
             case '-':
                 new_dest(env);
@@ -339,7 +339,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 right = find_last_dest(last->next);
                 last = find_last(last);
                 new_dest(env);
-                last->next = new_stac(tac_minus,left,right,get_dest());
+                last->next = new_stac(tac_minus,left,right,get_dest(env));
                 return tac;
             case '*':
                 new_dest(env);
@@ -350,7 +350,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 right = find_last_dest(last->next);
                 last = find_last(last);
                 new_dest(env);
-                last->next = new_stac(tac_mult,left,right,get_dest());
+                last->next = new_stac(tac_mult,left,right,get_dest(env));
                 return tac;
             case '/':
                 new_dest(env);
@@ -361,7 +361,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 right = find_last_dest(last->next);
                 last = find_last(last);
                 new_dest(env);
-                last->next = new_stac(tac_div,left,right,get_dest());
+                last->next = new_stac(tac_div,left,right,get_dest(env));
                 return tac;
             case '%':
                 new_dest(env);
@@ -372,7 +372,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 right = find_last_dest(last->next);
                 last = find_last(last);
                 new_dest(env);
-                last->next = new_stac(tac_mod,left,right,get_dest());
+                last->next = new_stac(tac_mod,left,right,get_dest(env));
                 return tac;
         }
     }
@@ -390,5 +390,6 @@ TAC *gen_tac0(NODE *tree, ENV* env){
 
 TAC *gen_tac(NODE* tree){
     ENV *env = init_env();
-    gen_tac0(tree,env);
+    TAC* tac = gen_tac0(tree,env);
+    return tac;
 }

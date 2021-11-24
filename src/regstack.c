@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "regstack.h"
 
-#define MAXSIZE 32 
+#define MAXSIZE 8 
 
 TOKEN* stack[MAXSIZE];
 

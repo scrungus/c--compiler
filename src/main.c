@@ -5,6 +5,7 @@
 #include <string.h>
 #include "interpreter.h"
 #include "gentac.h"
+#include "genmc.h"
 
 char *named(int t)
 {
@@ -218,12 +219,18 @@ void print_ic(TAC* tac){
     
 }
 
+void print_mc(MC* i)
+{
+  for(;i!=NULL;i=i->next) printf("%s\n",i->insn);
+}
+
 extern int yydebug;
 extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret(NODE*);
 extern TAC* gen_tac(NODE*);
+extern MC* gen_mc(TAC*);
 
 int main(int argc, char** argv)
 {
@@ -248,6 +255,9 @@ int main(int argc, char** argv)
 
     printf("----------------------------------------------------------------\n");
     printf("Generating TAC...\n");
-    print_ic(gen_tac(tree));
+    TAC* tac = gen_tac(tree);
+    print_ic(tac);
+    printf("Generating machine code...\n");
+    print_mc(gen_mc(tac));
     return 0;
 }

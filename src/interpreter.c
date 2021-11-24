@@ -17,6 +17,66 @@ extern VALUE *declare_func(TOKEN*,VALUE*, FRAME*);
 
 int r_early = 0, in_seq = 0;
 
+//built-ins
+
+void print_int(VALUE *v){
+    if(v->type == CONSTANT){
+         printf("%d\n", v->integer);
+    }
+    else{
+        printf("fatal: print_int(): invalid int type\n"); exit(1);
+    }
+}
+
+void print_string(VALUE *v){
+    if(v->type == STRING_LITERAL){
+        printf("%s\n",v->string);
+    }
+    else{
+        printf("fatal: print_string(): invalid string type\n"); exit(1);
+    }
+}
+
+VALUE* read_int(){
+    int n;
+    int c;
+    char buf[2];
+    printf("> ");
+    clearerr(stdin);
+    fgets(buf, 2,stdin);   
+    n = strtol(buf, NULL,10);
+    return make_value_int(n);
+}
+
+int is_builtin(TOKEN* name){
+    char *ps = "print_string";
+    char *p = "print_int";
+    char *r = "read_int";
+
+    if(!strcmp(ps,name->lexeme)||!strcmp(p,name->lexeme)||!strcmp(r,name->lexeme)){
+        return 1;
+    }
+    return 0;
+}
+
+VALUE* call_builtin(TOKEN* name, VALUELIST* args){
+    char *ps = "print_string";
+    char *p = "print_int";
+    char *r = "read_int";
+
+    if(!strcmp(ps,name->lexeme)){
+        print_string(args->value);
+        return NULL;
+    }
+    if(!strcmp(p,name->lexeme)){
+        print_int(args->value);
+        return NULL;
+    }
+    if(!strcmp(r,name->lexeme)){
+        return read_int();
+    }
+}
+
 VALUE* new_closure(NODE* t, FRAME* e){
     CLOSURE* c = malloc(sizeof(CLOSURE));
     VALUE* v = malloc(sizeof(VALUE));
@@ -74,10 +134,20 @@ VALUE* make_value_int(int val){
 
 VALUE* make_value_bool(int val){
     VALUE *value = malloc(sizeof(VALUE));
-    if (value == NULL) {perror("fatal: make_value_int failed\n"); exit(1);}
+    if (value == NULL) {perror("fatal: make_value_bool failed\n"); exit(1);}
 
     value->type = BOOL;
     value->boolean = val;
+    return value;
+}
+
+VALUE* make_value_string(char* str){
+    VALUE *value = malloc(sizeof(VALUE));
+    if (value == NULL) {perror("fatal: make_value_string failed\n"); exit(1);}
+
+    value->type = STRING_LITERAL;
+    value->string = malloc(strlen(str));
+    strcpy(value->string, str);
     return value;
 }
 
@@ -167,6 +237,9 @@ NODE* formals(CLOSURE* f){
 
 VALUE *call(NODE* name, FRAME* e, VALUELIST* args){
     TOKEN* t = (TOKEN *)name;
+    if(is_builtin(t)){
+        return call_builtin(t,args);
+    }
     CLOSURE *f = find_func(t,e);
     FRAME* ef = extend_frame(e,formals(f),args);
     ef->next = f->env;
@@ -209,6 +282,9 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 printf("error: undefined variable %s\n",t->lexeme);
             }
             else{return v;}
+        }
+        else if (t->type == STRING_LITERAL){
+            return make_value_string(t->lexeme);
         }
     }
     char c = (char)tree->type;

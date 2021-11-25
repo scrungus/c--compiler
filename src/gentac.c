@@ -17,8 +17,10 @@ extern TOKEN* new_token(int);
 extern int isempty() ;
 extern int isfull() ;
 extern TOKEN* pop();
+extern TOKEN* pop_arg();
 extern TOKEN* peep();
 extern int push(TOKEN*);
+extern int push_arg(TOKEN*);
 
 
 TOKEN* new_lbl(ENV *env){
@@ -40,8 +42,27 @@ TOKEN * new_dest(ENV *env){
     sprintf(dst->lexeme,"t%i",env->dstcounter);
     env->dstcounter++;
     int p = push(dst);
-    if (p != 0){printf("fatal: failed to add new register \n");exit(1);}
+    if (p != 0){printf("fatal: exceeded max registers \n");exit(1);}
     return dst;
+}
+
+TOKEN * new_arg(ENV *env){
+    TOKEN* dst = (TOKEN*)malloc(sizeof(TOKEN));
+    if(dst==NULL){printf("fatal: failed to generate destination\n");exit(1);}
+    dst->type=IDENTIFIER;
+    dst->lexeme = (char*)calloc(1,2);
+    sprintf(dst->lexeme,"a%i",env->argcounter);
+    env->argcounter++;
+    int p = push_arg(dst);
+    if (p != 0){printf("fatal: exceeded max parameters in function \n");exit(1);}
+    return dst;
+}
+
+TOKEN* get_arg(ENV *env){
+    TOKEN* popped = pop_arg();
+    if(popped==NULL){printf("fatal: failed to get destination\n");exit(1);}
+    env->argcounter--;
+    return popped;
 }
 
 TOKEN* get_dest(ENV *env){
@@ -90,6 +111,7 @@ ENV *init_env(){
     }
     env->lblcounter=0;
     env->dstcounter=0;
+    env->argcounter=0;
     new_lbl(env);
     new_dest(env);
     return env;
@@ -122,12 +144,6 @@ TAC* new_proc (TOKEN* name, int arity){
     return ans;
 }
 
-TAC* new_endproc(){
-    TAC* ans = empty_tac();
-    ans->op = tac_endproc;
-    return ans;
-}
-
 TAC* new_load(TOKEN* name, TOKEN* dst){
     TAC* ans = empty_tac();
     ans->op = tac_load;
@@ -141,6 +157,73 @@ TAC* new_store(TOKEN* name, TOKEN* dst){
     ans->op = tac_store;
     ans->ld.src1 = name;
     ans->ld.dst = dst;
+    return ans;
+}
+
+
+int count_params(NODE * tree){
+    int count = 0;
+    if (tree == NULL || tree->type == INT) {return 0;}
+    if( tree->type == LEAF && tree->left->type == IDENTIFIER){
+        return 1;
+    }
+    else{
+        count += count_params(tree->left);
+        count += count_params(tree->right);
+        return count;
+    }
+}
+
+TOKENLIST* get_params(NODE* ids){
+    TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
+    if((char)ids->type == '~'){
+        tokens->name = (TOKEN*)ids->right->left;
+        return tokens;
+    }
+    else{
+        if((char)ids->type == ','){
+            tokens->name = (TOKEN*)ids->right->right->left;
+            tokens->next = get_params(ids->left);
+            return tokens;
+        }
+    }
+}
+
+TAC* load_params(ENV* env, int arity,TOKENLIST* params){
+    TAC* ans = malloc(sizeof(TAC));
+    if(arity == 0 || params == NULL){
+        return NULL;
+    }
+    else{
+        ans = new_load(new_arg(env),peep_dest(env));
+        ans->next = new_store(get_dest(env),params->name);
+        new_dest(env);
+        arity--;
+        ans->next->next = load_params(env,arity,params->next);
+        return ans;
+    }
+}
+
+
+TAC* load_newproc(NODE* tree, ENV* env){
+    TAC* ans = empty_tac();
+    int arity = count_params(tree->right);
+    if(arity != 0 ){
+        TOKEN* name = (TOKEN*)tree->left->left;
+        ans = new_proc(name,arity);
+        TOKENLIST* params = get_params(tree->right);
+        ans->next = load_params(env,arity,params);
+    }
+    else{
+        TOKEN* name = (TOKEN*)tree->left->left;
+        ans = new_proc(name,arity);
+    }
+    return ans;
+}
+
+TAC* new_endproc(){
+    TAC* ans = empty_tac();
+    ans->op = tac_endproc;
     return ans;
 }
 
@@ -239,11 +322,49 @@ int count_args(NODE * tree){
     }
 }
 
-TAC* new_call(NODE* tree){
+TOKENLIST* get_args(NODE *tree){
+    TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
+
+    if(tree->type == LEAF){
+        tokens->name = (TOKEN*)tree->left;
+        return tokens;
+    }
+    else{
+        if((char)tree->type == ','){
+            tokens->name = (TOKEN*)tree->right->right->left;
+            tokens->next = get_args(tree->left);
+            return tokens;
+        }
+    }
+}
+
+TAC* load_args(ENV* env, int arity,TOKENLIST* args){
+    TAC* ans = malloc(sizeof(TAC));
+    if(arity == 0 || args == NULL){
+        return NULL;
+    }
+    else{
+        ans = new_load(args->name,get_arg(env));
+        arity--;
+        ans->next = load_args(env,arity,args->next);
+        return ans;
+    }
+}
+
+TAC* new_call(NODE* tree, ENV* env){
     TAC* ans = empty_tac();
     ans->op = tac_call;
     ans->call.name = (TOKEN*)tree->left->left;
     ans->call.arity = count_args(tree->right);
+    return ans;
+}
+
+TAC* load_and_call(NODE* tree,ENV* env){
+    TAC* ans = empty_tac();
+    int arity = count_args(tree->right);
+    TOKENLIST* args = get_args(tree->right);
+    ans = load_args(env,arity,args);
+    ans->next = new_call(tree,env);
     return ans;
 }
 
@@ -256,8 +377,7 @@ TAC* new_return(NODE* tree, ENV* env){
         ans->rtn.v = t;
     }
     else if (tree->type==APPLY){
-        ans->rtn.type = tac_call;
-        ans->rtn.call = new_call(tree)->call;
+       ans = load_and_call(tree,env);
     }
     else{
         TAC* tac = gen_tac0(tree,env);
@@ -300,8 +420,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
             case 'd':
                 return gen_tac0(tree->right,env);
             case 'F':
-                left = (TOKEN *)tree->left->left;
-                return new_proc(left,0);
+                return load_newproc(tree,env);
             case ';':
                 tac = gen_tac0(tree->left,env);
                 last = find_last(tac);
@@ -383,7 +502,7 @@ TAC *gen_tac0(NODE *tree, ENV* env){
     case IF:
         return parse_if(tree,env);
     case APPLY: 
-        return new_call(tree);
+        return new_call(tree,env);
     }
 }
 

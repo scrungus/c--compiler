@@ -7,6 +7,7 @@
 typedef struct env {
   int dstcounter;
   int lblcounter;
+  int argcounter;
   TOKEN* currlbl;
 }ENV;
 

@@ -55,6 +55,7 @@ TOKEN *find_var(VAR* vars, TOKEN* t){
     }
     vars = vars->next;
   }
+  return t;
 }
 
 MC* init_mc(){
@@ -107,6 +108,18 @@ MC* new_plus(TAC* tac){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   sprintf(mc->insn,"add $%s,$%s,$%s",tac->stac.dst->lexeme,tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  return mc;
+}
+
+MC* new_func_rtn(TAC* i){
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  if(i->next == NULL){
+    mc->insn = "syscall";
+  }
+  else{
+    mc->insn = "jr $ra";
+  }
   return mc;
 }
 MC* new_minus(TAC* tac){
@@ -180,7 +193,9 @@ MC* gen_mc0(TAC* i, MC* dat, VAR* vars, SR* sr)
       mc->next = gen_mc0(i->next,dat, vars,sr);
       return mc;
     case tac_endproc:
-      return NULL;
+      mc = new_func_rtn(i);
+      mc->next = gen_mc0(i->next,dat, vars,sr);
+      return mc;
     case tac_load:
       mc = new_ld(vars,i);
       mc->next = gen_mc0(i->next,dat, vars,sr);

@@ -2,11 +2,14 @@
 #include <stdlib.h>
 #include "regstack.h"
 
-#define MAXSIZE 8 
+#define MAXREGSIZE 8 
+#define MAXARGS 4
 
-TOKEN* stack[MAXSIZE];
+TOKEN* stack[MAXREGSIZE];
+TOKEN* arg_stack[MAXARGS];
 
 int top = -1;
+int top_args = -1;
 
 int isempty() {
 
@@ -15,10 +18,26 @@ int isempty() {
    else
       return 0;
 }
+
+int isempty_args() {
+
+   if(top_args == -1)
+      return 1;
+   else
+      return 0;
+}
    
 int isfull() {
 
-   if(top == MAXSIZE)
+   if(top == MAXREGSIZE)
+      return 1;
+   else
+      return 0;
+}
+
+int isfull_args() {
+
+   if(top_args == MAXARGS)
       return 1;
    else
       return 0;
@@ -54,5 +73,28 @@ int push(TOKEN* data) {
       return 0;
    } else {
       return -1;
+   }
+}
+
+int push_arg(TOKEN* data) {
+
+if(!isfull_args()) {
+   top_args = top_args + 1;   
+   arg_stack[top_args] = data;
+   return 0;
+} else {
+   return -1;
+}
+}
+
+TOKEN* pop_arg() {
+   TOKEN* data;
+	
+   if(!isempty_args()) {
+      data = arg_stack[top_args];
+      top_args = top_args - 1;   
+      return data;
+   } else {
+      return NULL;
    }
 }

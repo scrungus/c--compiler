@@ -9,6 +9,7 @@
 #include "token.h"
 #include "string.h"
 #include "regstack.h"
+#include "hashtable.h"
 
 extern VALUE *lookup_name(TOKEN*, FRAME*);
 extern VALUE *assign_to_name(TOKEN*, FRAME*,VALUE*);
@@ -21,6 +22,7 @@ extern TOKEN* pop_arg();
 extern TOKEN* peep();
 extern int push(TOKEN*);
 extern int push_arg(TOKEN*);
+extern BB* insert(TOKEN*,TAC*); 
 
 
 TOKEN* new_lbl(ENV *env){
@@ -29,6 +31,7 @@ TOKEN* new_lbl(ENV *env){
     lbl->type=IDENTIFIER;
     lbl->lexeme = (char*)calloc(1,2);
     sprintf(lbl->lexeme,"L%i",env->lblcounter);
+    lbl->value = env->lblcounter;
     env->lblcounter++;
     env->currlbl = lbl;
     return lbl;
@@ -60,9 +63,15 @@ TOKEN * new_arg(ENV *env){
 
 TOKEN* get_arg(ENV *env){
     TOKEN* popped = pop_arg();
-    if(popped==NULL){printf("fatal: failed to get destination\n");exit(1);}
-    env->argcounter--;
+    if(popped != NULL){env->argcounter--;}
     return popped;
+}
+
+void reset_args(ENV* env){
+    TOKEN* popped = get_arg(env);
+    while (popped != NULL){
+        popped = get_arg(env);
+    }
 }
 
 TOKEN* get_dest(ENV *env){
@@ -204,23 +213,6 @@ TAC* load_params(ENV* env, int arity,TOKENLIST* params){
     }
 }
 
-
-TAC* load_newproc(NODE* tree, ENV* env){
-    TAC* ans = empty_tac();
-    int arity = count_params(tree->right);
-    if(arity != 0 ){
-        TOKEN* name = (TOKEN*)tree->left->left;
-        ans = new_proc(name,arity);
-        TOKENLIST* params = get_params(tree->right);
-        ans->next = load_params(env,arity,params);
-    }
-    else{
-        TOKEN* name = (TOKEN*)tree->left->left;
-        ans = new_proc(name,arity);
-    }
-    return ans;
-}
-
 TAC* new_endproc(){
     TAC* ans = empty_tac();
     ans->op = tac_endproc;
@@ -331,7 +323,7 @@ TOKENLIST* get_args(NODE *tree){
     }
     else{
         if((char)tree->type == ','){
-            tokens->name = (TOKEN*)tree->right->right->left;
+            tokens->name = (TOKEN*)tree->right->left;
             tokens->next = get_args(tree->left);
             return tokens;
         }
@@ -344,7 +336,7 @@ TAC* load_args(ENV* env, int arity,TOKENLIST* args){
         return NULL;
     }
     else{
-        ans = new_load(args->name,get_arg(env));
+        ans = new_load(args->name,new_arg(env));
         arity--;
         ans->next = load_args(env,arity,args->next);
         return ans;
@@ -364,7 +356,8 @@ TAC* load_and_call(NODE* tree,ENV* env){
     int arity = count_args(tree->right);
     TOKENLIST* args = get_args(tree->right);
     ans = load_args(env,arity,args);
-    ans->next = new_call(tree,env);
+    TAC* last = find_last(ans);
+    last->next = new_call(tree,env);
     return ans;
 }
 
@@ -416,11 +409,13 @@ TAC *gen_tac0(NODE *tree, ENV* env){
                 last->next = gen_tac0(tree->right,env);
                 last = find_last(tac);
                 last->next = new_endproc();
+                reset_args(env);
                 return tac;
             case 'd':
                 return gen_tac0(tree->right,env);
             case 'F':
-                return load_newproc(tree,env);
+                left = (TOKEN*)tree->left->left;
+                return new_proc(left,count_params(tree->right));
             case ';':
                 tac = gen_tac0(tree->left,env);
                 last = find_last(tac);
@@ -506,9 +501,90 @@ TAC *gen_tac0(NODE *tree, ENV* env){
     }
 }
 
+TAC* find_in_seq(TAC* seq, TAC* target){
+    while(seq!=target){
+        seq = seq->next;
+    }
+    return seq;
+}
 
-TAC *gen_tac(NODE* tree){
+BB* find_bb(BB** bbs, TOKEN* id, int size){
+
+    for(int i=0; i<size; i++){
+        if(bbs[i] != NULL && bbs[i]->id == id){
+            return bbs[i];
+        }
+    }
+    return NULL;
+}
+
+BB* find_next_bb(BB** bbs, TOKEN* id, int size){
+    for(int i=0; i<size; i++){
+        if(bbs[i] != NULL && bbs[i]->id->value == (id->value+1)){
+            return bbs[i];
+        }
+    }
+    return NULL;
+}
+
+BB** gen_bbs(TAC* tac){
+    static BB* bbs[10];
+    //bb->nexts = malloc(sizeof(BB)*2);
+    TAC *curr;
+    int i =0;
+    int id = 0;
+    while(tac != NULL){
+        BB* bb = malloc(sizeof(BB));
+        bb->leader = tac;
+        curr = tac->next;
+        while(curr->op != tac_if && curr->op != tac_goto && curr->next != NULL && curr->next->op != tac_lbl){
+            curr = curr->next;
+        }
+        tac = curr->next;
+        curr = find_in_seq(bb->leader,curr);
+        /* switch(curr->op){
+            case tac_if:
+                bb->nexts[0] = gen_bbs(tac);
+                bb->nexts[1] = insert(curr->ift.lbl,NULL);
+                break;
+            case tac_goto:
+                bb->nexts[0] = insert(curr->gtl.lbl,NULL);
+                break;              
+        }  */
+        curr->next = NULL;
+        bbs[i] = bb;
+        i++;
+
+        if(bb->leader->op == tac_lbl){
+            bb->id = bb->leader->lbl.name;
+        }
+        else{
+            TOKEN* c = new_token(CONSTANT); c->value = id;
+            bb->id = c;
+            id++;
+        }
+    }
+    TAC* transfer;
+    i = 0;
+    while(bbs[i] != NULL){
+        transfer = find_last(bbs[i]->leader);
+        if(transfer->op == tac_goto){
+            bbs[i]->nexts[0] = find_bb(bbs,transfer->gtl.lbl,10);
+        }
+        else{
+            bbs[i]->nexts[0] = find_next_bb(bbs,bbs[i]->id,10);
+            if(transfer->op == tac_if){
+                bbs[i]->nexts[1] = find_bb(bbs,transfer->ift.lbl,10);
+            }
+        }
+        i++;
+    }
+    return bbs;
+}
+
+BB **gen_tac(NODE* tree){
     ENV *env = init_env();
     TAC* tac = gen_tac0(tree,env);
-    return tac;
+    BB** bbs = gen_bbs(tac);
+    return bbs;
 }

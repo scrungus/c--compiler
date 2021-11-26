@@ -219,9 +219,38 @@ void print_ic(TAC* tac){
     
 }
 
+void print_token(TOKEN *i){
+  if (i->type == CONSTANT){
+    printf("%d",i->value);
+  }
+  else {
+    printf("%s",i->lexeme);
+  }
+}
 void print_mc(MC* i)
 {
   for(;i!=NULL;i=i->next) printf("%s\n",i->insn);
+}
+
+void print_bbs(BB** bbs){
+  int i = 0;
+  while(bbs[i] != NULL){
+    printf("\033[0;31m");
+    printf("BLOCK #");print_token(bbs[i]->id);
+    printf("\n\033[0m");
+    print_ic(bbs[i]->leader);
+    if(bbs[i]->nexts[0] != NULL){
+      printf("\033[0;31m");
+      printf("LINKS TO : ");
+      print_token(bbs[i]->nexts[0]->id);
+    }
+    if(bbs[i]->nexts[1] != NULL){
+      printf(" ");
+      print_token(bbs[i]->nexts[1]->id);
+    }
+    i++;
+    printf("\n\n");
+  }
 }
 
 extern int yydebug;
@@ -229,7 +258,7 @@ extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret(NODE*);
-extern TAC* gen_tac(NODE*);
+extern BB** gen_tac(NODE*);
 extern MC* gen_mc(TAC*);
 
 int main(int argc, char** argv)
@@ -255,8 +284,8 @@ int main(int argc, char** argv)
 
     printf("----------------------------------------------------------------\n");
     printf("Generating TAC...\n");
-    TAC* tac = gen_tac(tree);
-    print_ic(tac);
+    BB** tac = gen_tac(tree);
+    print_bbs(tac);
     printf("Generating machine code...\n");
     print_mc(gen_mc(tac));
     return 0;

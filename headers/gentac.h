@@ -83,7 +83,7 @@ typedef struct bb {
   struct bb *nexts[2];
 }BB;
 
-BB **gen_tac(NODE*);
+BB**gen_tac(NODE*);
 TAC* gen_tac0(NODE*, ENV*);
 
 

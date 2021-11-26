@@ -277,19 +277,25 @@ TAC* parse_if(NODE* tree, ENV* env){
     int code = tree->left->type;
     TOKEN* op1 = (TOKEN*)tree->left->left->left;
     TOKEN* op2 = (TOKEN*)tree->left->right->left;
+    TAC* last1,*last2;
     new_lbl(env);
     TAC* tacif = new_if(op1,op2,code,env->currlbl);
     if(tree->right->type == ELSE){
         TAC* consequent = gen_tac0(tree->right->left,env);
+        if(peep_dest(env)==NULL){
+            new_dest(env);
+        }
         TAC* alternative = gen_tac0(tree->right->right,env);
         TAC* altlbl = new_label(env->currlbl);
         new_lbl(env);
         TAC* gtl = new_goto(env->currlbl);
 
-        alternative->next = new_label(env->currlbl);
+        last1 = find_last(alternative);
+        last1->next = new_label(env->currlbl);
         altlbl->next = alternative;
         gtl->next = altlbl;
-        consequent->next = gtl;
+        last2 = find_last(consequent);
+        last2->next = gtl;
         tacif->next = consequent;
         return tacif;
     }

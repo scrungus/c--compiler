@@ -38,10 +38,10 @@ MC* find_lst(MC* mc){
 MC* init_mc(){
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
-    mc->insn = ".text";
+    mc->insn = ".globl main";
     mc->next = malloc(sizeof(MC));
     mc->next->insn = malloc(sizeof(INSN_BUF));
-    mc->next->insn = ".globl main";
+    mc->next->insn = ".text";
     return mc;
 }
 
@@ -88,10 +88,6 @@ MC* new_func_rtn(TAC* i){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   if(i->next == NULL){
-    mc->insn = "li $v0,10";
-    mc->next =malloc(sizeof(MC));
-    mc->next->insn = malloc(sizeof(INSN_BUF));
-    mc->next->insn = "syscall";
   }
   else{
     mc->insn = "jr $ra";
@@ -234,16 +230,65 @@ MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
   }
 }
 
+MC* print_result() {
+
+    //print integer result
+    MC *mc = malloc(sizeof(MC));
+    mc->insn = malloc(sizeof(INSN_BUF));
+    mc->insn = "move $a0 $v1";
+
+    MC* last = find_lst(mc);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "li $v0 1";
+
+    last = find_lst(last);
+    last->next =  malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "syscall";
+
+    //print newline
+    last = find_lst(last);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "li $a0 10";
+
+    last = find_lst(last);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "li $v0 11";
+
+    last = find_lst(last);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "syscall";
+
+    //exit
+    last = find_lst(last);
+    last->next =  malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "li $v0,10";
+
+    last = find_lst(last);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "syscall";
+    return mc;
+}
+
 MC *gen_mc(BB** i){
   MC* dat = init_dat();
   MC* mc = init_mc();
+  MC* last = find_lst(mc);
   AR* ar = malloc(sizeof(AR));
   FRME* e = malloc(sizeof(FRME));
   ar->sl = 0;
   VAR* vars;
   while((*i) != NULL){
-     mc->next = gen_mc0((*i)->leader, dat, ar,e);
+     last->next = gen_mc0((*i)->leader, dat, ar,e);
      *i++;
   }
+  last = find_lst(mc);
+  last->next = print_result();
   return mc;
 }

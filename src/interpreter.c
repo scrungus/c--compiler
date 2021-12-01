@@ -332,6 +332,16 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 left = interpret_tree(tree->left,e);
                 right = interpret_tree(tree->right,e);
                 return make_value_int(left->integer % right->integer);
+            case '>':
+                if(interpret_tree(tree->left,e)->integer > interpret_tree(tree->right,e)->integer){
+                    return make_value_bool(1);
+                }
+                else{return make_value_bool(0);}
+            case '<':
+                if(interpret_tree(tree->left,e)->integer < interpret_tree(tree->right,e)->integer){
+                    return make_value_bool(1);
+                }
+                else{return make_value_bool(0);}
         }
     }
     switch(tree->type){

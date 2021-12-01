@@ -209,31 +209,54 @@ MC* new_smpl_ld(FRME* e, TOKEN* src, TOKEN* dst){
 }
 
 MC* new_ift(TAC* tac, FRME* e){
-  TOKEN* dst1 = new_dst(e);
-  declare_var(tac->ift.op1,e);
-  assign_to_var(tac->ift.op1,e,dst1);
-  TOKEN* dst2 = new_dst(e);
-  declare_var(tac->ift.op2,e);
-  assign_to_var(tac->ift.op2,e,dst2);
-
-  MC* mc = new_smpl_ld(e,tac->ift.op1,dst1);
-  mc->next = new_smpl_ld(e,tac->ift.op2,dst2);
+  TOKEN* dst1 = lookup_loc(tac->ift.op1,e);
+  MC* mc;
+  if(dst1 == NULL){
+    dst1 = new_dst(e);
+    declare_var(tac->ift.op1,e);
+    assign_to_var(tac->ift.op1,e,dst1);
+    mc = new_smpl_ld(e,tac->ift.op1,dst1);
+  }
+  TOKEN* dst2 = lookup_loc(tac->ift.op2,e);
+  if(dst2 == NULL){
+    dst2 = new_dst(e);
+    declare_var(tac->ift.op2,e);
+    assign_to_var(tac->ift.op2,e,dst2);
+    if(mc != NULL){
+      mc->next = new_smpl_ld(e,tac->ift.op2,dst2);
+    }
+    else {mc = new_smpl_ld(e,tac->ift.op2,dst2);}
+  }
+  
   MC* last = find_lst(mc);
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
+  if(last != NULL){
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last = last->next;
+  }
+  else{
+    last = malloc(sizeof(MC));
+    last->insn = malloc(sizeof(INSN_BUF));
+  }
 
   switch(tac->ift.code){
+    case '>':
+      sprintf(last->insn,"ble $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      break;
+    case '<':
+      sprintf(last->insn,"bge $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      break;
     case EQ_OP:
-      sprintf(last->next->insn,"bne $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      sprintf(last->insn,"bne $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
       break;
     case NE_OP:
-      sprintf(last->next->insn,"beq $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      sprintf(last->insn,"beq $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
       break;
     case LE_OP:
-      sprintf(last->next->insn,"bgt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      sprintf(last->insn,"bgt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
       break;
     case GE_OP:
-      sprintf(last->next->insn,"blt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      sprintf(last->insn,"blt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
   }
   delete_constants(e);
   return mc;

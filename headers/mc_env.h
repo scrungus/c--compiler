@@ -16,5 +16,6 @@ typedef struct frme {
 TOKEN *lookup_loc(TOKEN*, FRME*);
 TOKEN *assign_to_var(TOKEN*, FRME*,TOKEN*);
 void declare_var(TOKEN*, FRME*);
-int reg_in_use(TOKEN*, FRME*);
+int reg_in_use(int, FRME*);
+void delete_constants(FRME*);
 #endif

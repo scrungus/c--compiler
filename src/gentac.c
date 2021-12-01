@@ -27,8 +27,6 @@ extern void declare_var(TOKEN*, FRME*);
 extern int reg_in_use(int, FRME*);
 extern void delete_constants(FRME*);
 
-#define MAXREGS 8 
-
 
 TOKEN* new_lbl(ENV *env){
     TOKEN* lbl = (TOKEN*)malloc(sizeof(TOKEN));

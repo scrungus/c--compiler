@@ -18,6 +18,20 @@ extern TOKEN *lookup_loc(TOKEN*, FRME*);
 extern TOKEN *assign_to_var(TOKEN*, FRME*,TOKEN*);
 extern void declare_var(TOKEN*, FRME*);
 
+TOKEN * new_dst(FRME *e){
+    for(int i=0; i<MAXREGS; i++){
+        if(!reg_in_use(i,e)){
+            TOKEN* dst = (TOKEN*)malloc(sizeof(TOKEN));
+            if(dst==NULL){printf("fatal: failed to generate destination\n");exit(1);}
+            dst->type=IDENTIFIER;
+            dst->lexeme = (char*)calloc(1,2);
+            sprintf(dst->lexeme,"t%i",i);
+            dst->value = i;
+            return dst;
+        }
+    }
+}
+
 int count_locals(TAC* i){
   int n = 0;
   while(i != NULL && i->op != tac_endproc){
@@ -66,14 +80,15 @@ MC* init_dat(){
   return mc;
 }
 
-MC* new_rtn(TAC* tac){
+MC* new_rtn(TAC* tac, FRME* e){
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
     if(tac->rtn.type == CONSTANT){
       sprintf(mc->insn,"li $v1 %d",tac->rtn.v->value);
     }
     else if(tac->rtn.type == IDENTIFIER){
-      sprintf(mc->insn,"move $v1 $%s",tac->rtn.v->lexeme);
+      TOKEN *t = lookup_loc(tac->rtn.v,e);
+      sprintf(mc->insn,"move $v1 $%s",t->lexeme);
     }
     return mc;
 }
@@ -152,6 +167,19 @@ MC* new_ld(FRME *e, TAC* tac){
     return mc;
 }
 
+MC* new_smpl_ld(FRME* e, TOKEN* src, TOKEN* dst){
+  MC *mc = malloc(sizeof(MC));
+    mc->insn = malloc(sizeof(INSN_BUF));
+    if(src->type == CONSTANT){
+        sprintf(mc->insn, "li $%s,%d",dst->lexeme,src->value);
+    }
+    else if(src->type == IDENTIFIER){
+        TOKEN *loc = lookup_loc(src,e);
+        sprintf(mc->insn, "move $%s,$%s",dst->lexeme,src->lexeme);
+    } 
+    return mc;
+}
+
 /* MC* allocate_mem(){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
@@ -172,14 +200,57 @@ MC* new_ld(FRME *e, TAC* tac){
   TOKEN* t = lookup_loc(tac->ld.dst,e);
   if(t == NULL){
     declare_var(tac->ld.dst,e);
+    assign_to_var(tac->ld.dst,e,tac->ld.src1);
   }
-  assign_to_var(tac->ld.dst,e,tac->ld.src1);
- /* mc->next = allocate_mem();
-   last = find_lst(mc);
+  else if(t->value != tac->ld.src1->value) {
+    sprintf(mc->insn,"move $%s $%s",t->lexeme,tac->ld.src1->lexeme);
+  }
+  return mc; 
+}
+
+MC* new_ift(TAC* tac, FRME* e){
+  TOKEN* dst1 = new_dst(e);
+  declare_var(tac->ift.op1,e);
+  assign_to_var(tac->ift.op1,e,dst1);
+  TOKEN* dst2 = new_dst(e);
+  declare_var(tac->ift.op2,e);
+  assign_to_var(tac->ift.op2,e,dst2);
+
+  MC* mc = new_smpl_ld(e,tac->ift.op1,dst1);
+  mc->next = new_smpl_ld(e,tac->ift.op2,dst2);
+  MC* last = find_lst(mc);
   last->next = malloc(sizeof(MC));
   last->next->insn = malloc(sizeof(INSN_BUF));
-  sprintf(last->next->insn,"sw $%s, $v0",tac->ld.src1->lexeme); */
-  return mc; 
+
+  switch(tac->ift.code){
+    case EQ_OP:
+      sprintf(last->next->insn,"bne $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      break;
+    case NE_OP:
+      sprintf(last->next->insn,"beq $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      break;
+    case LE_OP:
+      sprintf(last->next->insn,"bgt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+      break;
+    case GE_OP:
+      sprintf(last->next->insn,"blt $%s $%s %s",dst1->lexeme,dst2->lexeme,tac->ift.lbl->lexeme);
+  }
+  delete_constants(e);
+  return mc;
+}
+
+MC* new_gtl(TAC* i){
+  MC* mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"j %s",i->gtl.lbl->lexeme);
+  return mc;
+}
+
+MC* new_lbli(TAC* i){
+  MC* mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"%s:",i->lbl.name->lexeme);
+  return mc;
 }
 
 AR* gen_frame(AR* old, TAC* tac){
@@ -267,11 +338,23 @@ MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
       last->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_if:
+      mc = new_ift(i,e);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_lbl:
+      mc = new_lbli(i);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_goto:
+      mc = new_gtl(i);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_call:
     case tac_rtn:
-      mc = new_rtn(i);
+      mc = new_rtn(i,e);
       mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
   }
@@ -312,6 +395,7 @@ MC *gen_mc(BB** i){
   VAR* vars;
   while((*i) != NULL){
      last->next = gen_mc0((*i)->leader, dat, ar,e);
+     last = find_lst(last);
      *i++;
   }
   last = find_lst(mc);

@@ -2,8 +2,7 @@
 
 #ifndef GENMC
 #define GENMC
-#define M 4
-#define N 8
+
 
 enum{
   PRINT_INT = 1,
@@ -32,8 +31,8 @@ int size;
 unsigned int fp; // save caller ’s AR
 unsigned int pc; // save caller ’s PC
 unsigned int sl; // this function ’s static link
-unsigned int param[M]; // param0 , ... paramm ,
-unsigned int local[N]; // local0 , ... localn ,
+unsigned int param[MAXARGS]; // param0 , ... paramm ,
+unsigned int local[MAXREGS]; // local0 , ... localn ,
 //unsigned int tmp[k];
 } AR;
 

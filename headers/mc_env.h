@@ -2,6 +2,8 @@
 
 #ifndef MCENV
 #define MCENV
+#define MAXREGS 8
+#define MAXARGS 4
 typedef struct bnding {
   TOKEN* name;
   TOKEN* loc;

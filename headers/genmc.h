@@ -4,6 +4,14 @@
 #define GENMC
 #define M 4
 #define N 8
+
+enum{
+  PRINT_INT = 1,
+  PRINT_CHAR = 11,
+  SBRK = 9,
+  EXIT = 10
+};
+
 typedef struct mc {
   char* insn;
   struct mc* next;
@@ -20,6 +28,7 @@ typedef struct sr {
 }SR;
 
 typedef struct ar {
+int size;
 unsigned int fp; // save caller ’s AR
 unsigned int pc; // save caller ’s PC
 unsigned int sl; // this function ’s static link

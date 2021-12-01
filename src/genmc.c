@@ -24,6 +24,7 @@ int count_locals(TAC* i){
     if(i->op == tac_store){
       n++;
     }
+    i = i->next;
   }
   return n;
 }
@@ -32,6 +33,19 @@ MC* find_lst(MC* mc){
   while(mc->next != NULL){
     mc = mc->next;
   }
+  return mc;
+}
+
+MC* make_syscall(int code){
+  MC* mc;
+  mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"li $v0 %d",code);
+
+  MC* last = find_lst(mc);
+  last->next =  malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "syscall";
   return mc;
 }
 
@@ -168,6 +182,39 @@ MC* new_ld(FRME *e, TAC* tac){
   return mc; 
 }
 
+AR* gen_frame(AR* old, TAC* tac){
+  AR* new = malloc(sizeof(AR));
+  int locals = count_locals(tac);
+  new->size = (locals*4) + (tac->proc.arity*4)+4;
+
+  for(int i = 0; i < tac->proc.arity; i++){
+      new->local[i] = 4+(i*4);
+    }
+
+  for(int i = 0; i < locals; i++){
+    new->local[i] = 4+(tac->proc.arity*4)+(i*4);
+  }
+  return new;
+}
+
+MC* print_frame(AR* ar){
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"li $a0 %d",ar->size);
+
+  MC* last = find_lst(mc);
+  last->next = make_syscall(SBRK);
+
+  last = find_lst(mc);
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "move $fp $v0";
+
+  return mc;
+}
+
+
+
 MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
 {
   MC* mc, *last;
@@ -200,11 +247,11 @@ MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
       mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_proc:
-      arn = malloc(sizeof(AR));
-      arn->fp = ar;
-      arn->sl = ar->sl+1;
+      arn = gen_frame(ar,i);
       mc = new_prc(i,arn);
-      mc->next = gen_mc0(i->next,dat, ar,e);
+      mc->next = print_frame(arn);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_endproc:
       mc = new_func_rtn(i);
@@ -238,14 +285,7 @@ MC* print_result() {
     mc->insn = "move $a0 $v1";
 
     MC* last = find_lst(mc);
-    last->next = malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "li $v0 1";
-
-    last = find_lst(last);
-    last->next =  malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "syscall";
+    last->next = make_syscall(PRINT_INT);
 
     //print newline
     last = find_lst(last);
@@ -254,25 +294,11 @@ MC* print_result() {
     last->next->insn = "li $a0 10";
 
     last = find_lst(last);
-    last->next = malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "li $v0 11";
-
-    last = find_lst(last);
-    last->next = malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "syscall";
+    last->next = make_syscall(PRINT_CHAR);
 
     //exit
     last = find_lst(last);
-    last->next =  malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "li $v0,10";
-
-    last = find_lst(last);
-    last->next = malloc(sizeof(MC));
-    last->next->insn = malloc(sizeof(INSN_BUF));
-    last->next->insn = "syscall";
+    last->next = make_syscall(EXIT);
     return mc;
 }
 

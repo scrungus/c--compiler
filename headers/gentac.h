@@ -1,5 +1,6 @@
 #include "token.h"
 #include "nodes.h"
+#include "mc_env.h"
 #ifndef GENTAC
 #define GENTAC 
 
@@ -84,7 +85,7 @@ typedef struct bb {
 }BB;
 
 BB**gen_tac(NODE*);
-TAC* gen_tac0(NODE*, ENV*);
+TAC* gen_tac0(NODE*, ENV*,FRME*);
 
 
 #endif

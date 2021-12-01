@@ -251,6 +251,7 @@ void print_bbs(BB** bbs){
     i++;
     printf("\n\n");
   }
+  printf("\033[0m");
 }
 
 extern int yydebug;
@@ -259,7 +260,7 @@ extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret(NODE*);
 extern BB** gen_tac(NODE*);
-extern MC* gen_mc(TAC*);
+extern MC* gen_mc(BB**);
 
 int main(int argc, char** argv)
 {

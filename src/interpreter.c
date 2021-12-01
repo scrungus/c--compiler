@@ -300,9 +300,11 @@ VALUE* interpret_tree(NODE *tree, FRAME* e){
                 return declare_func(t,new_closure(tree,e),e);
             case ';':
                 in_seq = 1;
-                left = interpret_tree(tree->left,e); //HOW DO YOU STOP EXECUTING BELOW IF THIS RETURNS ??
-                if(r_early){
-                    return left;
+                if(tree->left != NULL){
+                    left = interpret_tree(tree->left,e); //HOW DO YOU STOP EXECUTING BELOW IF THIS RETURNS ??
+                    if(r_early){
+                        return left;
+                    }
                 }
                 in_seq = 0;
                 return interpret_tree(tree->right,e);

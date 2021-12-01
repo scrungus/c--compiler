@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "C.tab.h"
 #include "regstack.h"
+#include "mc_env.h"
 
 #define INSN_BUF 64
 #define VAR_COUNT 64
@@ -13,49 +14,25 @@ extern int isfull() ;
 extern TOKEN* pop();
 extern TOKEN* peep();
 extern int push(TOKEN*);
+extern TOKEN *lookup_loc(TOKEN*, FRME*);
+extern TOKEN *assign_to_var(TOKEN*, FRME*,TOKEN*);
+extern void declare_var(TOKEN*, FRME*);
 
-
-TOKEN * new_srdest(SR* sr){
-    TOKEN* dst = (TOKEN*)malloc(sizeof(TOKEN));
-    if(dst==NULL){printf("fatal: failed to generate destination\n");exit(1);}
-    dst->type=IDENTIFIER;
-    dst->lexeme = (char*)calloc(1,2);
-    sprintf(dst->lexeme,"s%i",sr->srcnt);
-    sr->srcnt++;
-    int p = push(dst);
-    if (p != 0){printf("fatal: failed to add new register \n");exit(1);}
-    return dst;
+int count_locals(TAC* i){
+  int n = 0;
+  while(i != NULL && i->op != tac_endproc){
+    if(i->op == tac_store){
+      n++;
+    }
+  }
+  return n;
 }
 
-int exists_var(VAR* vars, TOKEN* t){
-  while(vars != NULL && t != NULL){
-    if(vars->name == t){
-      return 1;
-    }
-    vars = vars->next;
+MC* find_lst(MC* mc){
+  while(mc->next != NULL){
+    mc = mc->next;
   }
-  return 0;
-}
-
-VAR* change_var(VAR* vars, TOKEN* var, TOKEN* reg){
-  while(vars != NULL && var != NULL && reg != NULL){
-    if(vars->name == var){
-      vars->reg = reg;
-      return vars;
-    }
-    vars = vars->next;
-  }
-  return vars;
-}
-
-TOKEN *find_var(VAR* vars, TOKEN* t){
-  while(vars != NULL && t != NULL){
-    if(vars->name == t){
-      return vars->reg;
-    }
-    vars = vars->next;
-  }
-  return t;
+  return mc;
 }
 
 MC* init_mc(){
@@ -75,16 +52,6 @@ MC* init_dat(){
   return mc;
 }
 
-/* void add_dat(MC* dat, char* name, int size, char vars[]){
-
-    if(add_var(vars)){
-      MC* next =  malloc(sizeof(MC));
-      next->insn = malloc(sizeof(INSN_BUF));
-      sprintf(next->insn,"%s: .word %d",name,size);
-      dat->next = next;
-    }
-} */
-
 MC* new_rtn(TAC* tac){
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
@@ -97,10 +64,16 @@ MC* new_rtn(TAC* tac){
     return mc;
 }
 
-MC* new_prc(TAC* tac){
+MC* new_prc(TAC* tac, AR* ar){
   MC *mc = malloc(sizeof(MC));
+  MC *first =mc;
   mc->insn = malloc(sizeof(INSN_BUF));
   sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
+  /* mc = mc->next;
+  for(int i = tac->proc.arity; i>0;i--){
+    mc->insn = malloc(sizeof(INSN_BUF));
+    sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
+  } */
   return mc;
 }
 
@@ -115,7 +88,10 @@ MC* new_func_rtn(TAC* i){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   if(i->next == NULL){
-    mc->insn = "syscall";
+    mc->insn = "li $v0,10";
+    mc->next =malloc(sizeof(MC));
+    mc->next->insn = malloc(sizeof(INSN_BUF));
+    mc->next->insn = "syscall";
   }
   else{
     mc->insn = "jr $ra";
@@ -123,58 +99,83 @@ MC* new_func_rtn(TAC* i){
   return mc;
 }
 MC* new_minus(TAC* tac){
-    
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"sub $%s,$%s,$%s",tac->stac.dst->lexeme,tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  return mc;
 }
 MC* new_div(TAC* tac){
-    
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"div $%s,$%s",tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  mc->next = malloc(sizeof(MC));
+  mc->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->next->insn,"move $%s,$lo",tac->stac.dst->lexeme);
+  return mc;
 }
 MC* new_mod(TAC* tac){
-    
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"div $%s,$%s",tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  mc->next = malloc(sizeof(MC));
+  mc->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->next->insn,"move $%s,$hi",tac->stac.dst->lexeme);
+  return mc;
 }
 MC* new_mult(TAC* tac){
-    
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"mul $%s,$%s,$%s",tac->stac.dst->lexeme,tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  return mc;
 }
 
-MC* new_ld(VAR* vars, TAC* tac){
+MC* new_ld(FRME *e, TAC* tac){
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
     if(tac->ld.src1->type == CONSTANT){
         sprintf(mc->insn, "li $%s,%d",tac->ld.dst->lexeme,tac->ld.src1->value);
     }
     else if(tac->ld.src1->type == IDENTIFIER){
-        TOKEN *loc = find_var(vars,tac->ld.src1);
+        TOKEN *loc = lookup_loc(tac->ld.src1,e);
         sprintf(mc->insn, "move $%s,$%s",tac->ld.dst->lexeme,loc->lexeme);
     } 
     return mc;
 }
 
-VAR* add_var(TAC* tac, VAR* vars){
-  if(!exists_var(vars,tac->ld.dst)){
-    VAR* v = malloc(sizeof(VAR));
-    v->name = tac->ld.dst;
-    v->reg = tac->ld.src1;
-    v->next = vars;
-    vars = v;
-    return vars;
-  }
-  else{
-    return change_var(vars,tac->ld.dst,tac->ld.src1);
-  }
-}
-
-MC* new_str(TAC* tac, SR* sr, VAR* vars){
+/* MC* allocate_mem(){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
-  TOKEN* t = find_var(vars,tac->ld.dst);
-  TOKEN* s = new_srdest(sr);
-  sprintf(mc->insn,"move $%s,$%s",s->lexeme,t->lexeme);
-  vars = change_var(vars,tac->ld.dst,s);
+  mc->insn = "li $a0 4";
+  mc->next = malloc(sizeof(MC));
+  mc->next->insn = malloc(sizeof(INSN_BUF));
+  mc->next->insn = "li $v0 9";
+  mc->next->next = malloc(sizeof(MC));
+  mc->next->next->insn = malloc(sizeof(INSN_BUF));
+  mc->next->next->insn = "syscall";
   return mc;
+} */
+
+ MC* new_str(TAC* tac, FRME* e){
+  MC *mc = malloc(sizeof(MC));
+  MC *last;
+  mc->insn = malloc(sizeof(INSN_BUF));
+  TOKEN* t = lookup_loc(tac->ld.dst,e);
+  if(t == NULL){
+    declare_var(tac->ld.dst,e);
+  }
+  assign_to_var(tac->ld.dst,e,tac->ld.src1);
+ /* mc->next = allocate_mem();
+   last = find_lst(mc);
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"sw $%s, $v0",tac->ld.src1->lexeme); */
+  return mc; 
 }
 
-MC* gen_mc0(TAC* i, MC* dat, VAR* vars, SR* sr)
+MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
 {
-  MC* mc;
+  MC* mc, *last;
+  AR* arn;
   if (i==NULL) return NULL;
   switch (i->op) {
   default:
@@ -182,28 +183,45 @@ MC* gen_mc0(TAC* i, MC* dat, VAR* vars, SR* sr)
 
     case tac_plus:
       mc = new_plus(i);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_minus:
+      mc = new_minus(i);
+      mc->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_div:
+      mc = new_div(i);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_mod:
+      mc = new_mod(i);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_mult:
+      mc = new_mult(i);
+      mc->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_proc:
-      mc = new_prc(i);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      arn = malloc(sizeof(AR));
+      arn->fp = ar;
+      arn->sl = ar->sl+1;
+      mc = new_prc(i,arn);
+      mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_endproc:
       mc = new_func_rtn(i);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      if(i->next != NULL){mc->next = gen_mc0(i->next,dat, ar,e);}
       return mc;
     case tac_load:
-      mc = new_ld(vars,i);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      mc = new_ld(e,i);
+      mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_store:
-      vars = add_var(i,vars);
-      mc = new_str(i,sr,vars);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      mc = new_str(i,e);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_if:
     case tac_lbl:
@@ -211,17 +229,21 @@ MC* gen_mc0(TAC* i, MC* dat, VAR* vars, SR* sr)
     case tac_call:
     case tac_rtn:
       mc = new_rtn(i);
-      mc->next = gen_mc0(i->next,dat, vars,sr);
+      mc->next = gen_mc0(i->next,dat, ar,e);
       return mc;
   }
 }
 
-MC *gen_mc(TAC* i){
+MC *gen_mc(BB** i){
   MC* dat = init_dat();
   MC* mc = init_mc();
-  SR *sr = malloc(sizeof(SR));
-  sr->srcnt = 0;
+  AR* ar = malloc(sizeof(AR));
+  FRME* e = malloc(sizeof(FRME));
+  ar->sl = 0;
   VAR* vars;
-  mc->next = gen_mc0(i, dat, vars,sr);
+  while((*i) != NULL){
+     mc->next = gen_mc0((*i)->leader, dat, ar,e);
+     *i++;
+  }
   return mc;
 }

@@ -6,7 +6,7 @@
 #include "test_utilities.h"
 #include "gentac.h"
 
-extern TAC *gen_tac(NODE*);
+extern BB **gen_tac(NODE*);
 extern NODE* make_leaf(TOKEN*);
 extern NODE* make_node(int, NODE*, NODE*);
 extern TOKEN* make_token(int);
@@ -30,7 +30,8 @@ void test_case_return_literal_arithmetic(int op){
     
     NODE* tree = construct_constant_arithmetic(op);
 
-    TAC *result = gen_tac(tree);
+    BB **r = gen_tac(tree);
+    TAC* result = (*r)->leader;
     TOKEN *dst1, *dst2;
     
     assert(result->op == tac_proc);
@@ -62,7 +63,8 @@ void test_case_return_literal_arithmetic_triple(int op){
 
     NODE* tree = construct_constant_arithmetic_triple(op);
 
-    TAC *result = gen_tac(tree);
+    BB **r = gen_tac(tree);
+    TAC* result = (*r)->leader;
     TOKEN *dst1, *dst2;
     
     assert(result->op == tac_proc);
@@ -104,7 +106,8 @@ void test_case_return_variable_arithmetic(int op){
 
     NODE* tree = construct_identifier_arithmetic(op);
 
-    TAC *result = gen_tac(tree);
+    BB **r = gen_tac(tree);
+    TAC* result = (*r)->leader;
     TOKEN *dst1, *dst2, *dst3, *dst4;
     
     assert(result->op == tac_proc);
@@ -155,7 +158,8 @@ void test_case_return_variable_arithmetic_triple(int op){
 
     NODE* tree = construct_identifier_arithmetic_triple(op);
 
-    TAC *result = gen_tac(tree);
+    BB **r = gen_tac(tree);
+    TAC* result = (*r)->leader;
     TOKEN *dst1, *dst2, *dst3, *dst4, *dst5;
     
     assert(result->op == tac_proc);

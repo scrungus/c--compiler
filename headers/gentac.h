@@ -40,6 +40,7 @@ typedef struct simple_tac {
 typedef struct proc {
   TOKEN* name;
   int arity;
+  TOKENLIST* args;
 }PROC;
 
 typedef struct load {
@@ -63,7 +64,9 @@ typedef struct gotolbl {
 }GOTO;
 
 typedef struct call {
- TOKEN* name; int arity;
+ TOKEN* name;
+ int arity;
+ TOKENLIST* args;
 } CALL;
 
 typedef struct rtn { 

@@ -28,10 +28,10 @@ typedef struct sr {
 
 typedef struct ar {
 int size;
-unsigned int fp; // save caller ’s AR
+int arity;
 unsigned int pc; // save caller ’s PC
 unsigned int sl; // this function ’s static link
-unsigned int param[MAXARGS]; // param0 , ... paramm ,
+//unsigned int param[MAXARGS]; // param0 , ... paramm ,
 unsigned int local[MAXREGS]; // local0 , ... localn ,
 //unsigned int tmp[k];
 } AR;

@@ -17,6 +17,7 @@ extern int push(TOKEN*);
 extern TOKEN *lookup_loc(TOKEN*, FRME*);
 extern TOKEN *assign_to_var(TOKEN*, FRME*,TOKEN*);
 extern void declare_var(TOKEN*, FRME*);
+extern TOKENLIST* list_vars(FRME*);
 
 TOKEN * new_dst(FRME *e){
     for(int i=0; i<MAXREGS; i++){
@@ -30,6 +31,10 @@ TOKEN * new_dst(FRME *e){
             return dst;
         }
     }
+}
+
+TOKENLIST * find_vars(TAC* tac){
+  return tac->proc.args;
 }
 
 int count_locals(TAC* i){
@@ -88,22 +93,14 @@ MC* new_rtn(TAC* tac, FRME* e){
     }
     else if(tac->rtn.type == IDENTIFIER){
       TOKEN *t = lookup_loc(tac->rtn.v,e);
+      if(t == NULL){
+        sprintf(mc->insn,"move $v1 $%s",tac->rtn.v->lexeme);
+      }
+      else{
       sprintf(mc->insn,"move $v1 $%s",t->lexeme);
+      }
     }
     return mc;
-}
-
-MC* new_prc(TAC* tac, AR* ar){
-  MC *mc = malloc(sizeof(MC));
-  MC *first =mc;
-  mc->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
-  /* mc = mc->next;
-  for(int i = tac->proc.arity; i>0;i--){
-    mc->insn = malloc(sizeof(INSN_BUF));
-    sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
-  } */
-  return mc;
 }
 
 MC* new_plus(TAC* tac){
@@ -179,19 +176,6 @@ MC* new_smpl_ld(FRME* e, TOKEN* src, TOKEN* dst){
     } 
     return mc;
 }
-
-/* MC* allocate_mem(){
-  MC *mc = malloc(sizeof(MC));
-  mc->insn = malloc(sizeof(INSN_BUF));
-  mc->insn = "li $a0 4";
-  mc->next = malloc(sizeof(MC));
-  mc->next->insn = malloc(sizeof(INSN_BUF));
-  mc->next->insn = "li $v0 9";
-  mc->next->next = malloc(sizeof(MC));
-  mc->next->next->insn = malloc(sizeof(INSN_BUF));
-  mc->next->next->insn = "syscall";
-  return mc;
-} */
 
  MC* new_str(TAC* tac, FRME* e){
   MC *mc = malloc(sizeof(MC));
@@ -276,10 +260,34 @@ MC* new_lbli(TAC* i){
   return mc;
 }
 
+MC* new_cll(TAC* tac, FRME* e){
+  MC* mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  MC* last = find_lst(mc);
+  int i=0;
+  while(i< tac->call.arity && tac->call.args != NULL){
+    TOKEN* t = new_token(IDENTIFIER); 
+    t->lexeme = (char*)calloc(1,2);
+    sprintf(t->lexeme,"a%d",i);
+    last->next = new_smpl_ld(e,tac->call.args->name,t);
+    last = find_lst(last);
+    i++;
+  }
+  last = find_lst(last);
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"jal %s",tac->call.name->lexeme);
+  return mc;
+}
+
 AR* gen_frame(AR* old, TAC* tac){
   AR* new = malloc(sizeof(AR));
   int locals = count_locals(tac);
+  new->arity = locals + tac->proc.arity;
   new->size = (locals*4) + (tac->proc.arity*4)+4;
+  new->sl = old->sl+1;
+
+  if(tac->proc.arity == 0 && locals == 0) {return new;}
 
   for(int i = 0; i < tac->proc.arity; i++){
       new->local[i] = 4+(i*4);
@@ -291,19 +299,107 @@ AR* gen_frame(AR* old, TAC* tac){
   return new;
 }
 
-MC* print_frame(AR* ar){
+MC* save_frame(AR* ar, FRME *e){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->insn,"li $a0 %d",ar->size);
-
+  mc->insn = "# Saving frame";
   MC* last = find_lst(mc);
-  last->next = make_syscall(SBRK);
+  int i = 0;
+  TOKENLIST* tks = list_vars(e);
+  while(ar->arity != 0 && tks != NULL){
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    sprintf(last->next->insn,"sw $%s %d($sp)",tks->name->lexeme,ar->local[i]);
+    tks = tks->next;
+    last = find_lst(last);
+    i++;
+  }
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "# End of saving frame";
+  return mc;
+}
 
+MC* new_frame(AR* ar, FRME *e){
+  
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  mc->insn = "# Creating new frame";
+  MC* last = find_lst(mc);
+
+  //load previous static link
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "lw $t0, 4($sp)";
+  last = find_lst(mc);
+
+  //allocate stack space for new frame
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"addiu $sp, $sp -%d",ar->size);
+  last = find_lst(mc);
+
+  //load new size into reg
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"li $t1, %d",ar->size);
+  last = find_lst(mc);
+
+  //load new arity into reg
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"li $t2, %d",ar->arity);
+  last = find_lst(mc);
+
+  //store size on stack
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "sw $t1, 0($sp)";
+  last = find_lst(mc);
+
+  //store sl on stack
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "addi $t0, $t0 1";
+  last = find_lst(mc);
+
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "sw $t0, 4($sp)";
+  last = find_lst(mc);
+
+  //store arity on stack
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "sw $t2, 8($sp)";
   last = find_lst(mc);
   last->next = malloc(sizeof(MC));
   last->next->insn = malloc(sizeof(INSN_BUF));
-  last->next->insn = "move $fp $v0";
+  last->next->insn = "# End of creating frame";
+  return mc;
+}
 
+MC* new_prc(TAC* tac, AR* ar, FRME* e){
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
+  MC* last = find_lst(mc);
+  last->next = new_frame(ar,e);
+  last = find_lst(mc);
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  TOKENLIST* vars = find_vars(tac);
+  TOKEN* t;
+  int i = 0;
+  while(i < tac->proc.arity && vars != NULL){
+    t = new_dst(e);
+    sprintf(last->next->insn,"move $%s $a%d",t->lexeme,i);
+    last = find_lst(last);
+    declare_var(vars->name,e);
+    assign_to_var(vars->name,e,t);
+    vars = vars->next;
+    i++;
+  }
   return mc;
 }
 
@@ -342,8 +438,7 @@ MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
       return mc;
     case tac_proc:
       arn = gen_frame(ar,i);
-      mc = new_prc(i,arn);
-      mc->next = print_frame(arn);
+      mc = new_prc(i,arn,e);
       last = find_lst(mc);
       last->next = gen_mc0(i->next,dat, ar,e);
       return mc;
@@ -376,6 +471,12 @@ MC* gen_mc0(TAC* i, MC* dat, AR* ar, FRME* e)
       last->next = gen_mc0(i->next,dat, ar,e);
       return mc;
     case tac_call:
+      mc = save_frame(ar,e);
+      last = find_lst(mc);
+      last->next = new_cll(i,e);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,dat, ar,e);
+      return mc;
     case tac_rtn:
       mc = new_rtn(i,e);
       mc->next = gen_mc0(i->next,dat, ar,e);
@@ -413,6 +514,7 @@ MC *gen_mc(BB** i){
   MC* mc = init_mc();
   MC* last = find_lst(mc);
   AR* ar = malloc(sizeof(AR));
+  ar->arity = 0;
   FRME* e = malloc(sizeof(FRME));
   ar->sl = 0;
   VAR* vars;

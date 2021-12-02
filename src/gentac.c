@@ -136,11 +136,12 @@ TAC* new_stac(int op, TOKEN* src1, TOKEN* src2, TOKEN* dst){
   return ans;
 }
 
-TAC* new_proc (TOKEN* name, int arity){
+TAC* new_proc (TOKEN* name, int arity, TOKENLIST* args){
     TAC* ans = empty_tac();
     ans->op = tac_proc;
     ans->proc.name = name;
     ans->proc.arity = arity;
+    ans->proc.args = args;
     return ans;
 }
 
@@ -186,6 +187,7 @@ int count_params(NODE * tree){
 }
 
 TOKENLIST* get_params(NODE* ids){
+    if(ids == NULL){return NULL;}
     TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
     if((char)ids->type == '~'){
         tokens->name = (TOKEN*)ids->right->left;
@@ -325,6 +327,7 @@ TAC* new_call(NODE* tree){
     ans->op = tac_call;
     ans->call.name = (TOKEN*)tree->left->left;
     ans->call.arity = count_args(tree->right);
+    ans->call.args = get_args(tree->right);
     return ans;
 }
 
@@ -383,7 +386,7 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e){
                 return gen_tac0(tree->right,env,e);
             case 'F':
                 left = (TOKEN*)tree->left->left;
-                return new_proc(left,count_params(tree->right));
+                return new_proc(left,count_params(tree->right),get_params(tree->right));
             case ';':
                 tac = gen_tac0(tree->left,env,e);
                 last = find_last(tac);

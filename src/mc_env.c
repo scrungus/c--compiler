@@ -18,6 +18,22 @@ TOKEN *lookup_loc(TOKEN * x, FRME * frame){
     return NULL;
 }
 
+TOKENLIST* list_vars(FRME * frame){
+    TOKENLIST * tks = malloc(sizeof(TOKENLIST));
+    TOKENLIST* head = tks;
+    while(frame != NULL){
+        BNDING *bindings = frame->bindings;
+        while(bindings != NULL){
+            tks->name = bindings->loc;
+            bindings = bindings->next;
+            tks->next = malloc(sizeof(TOKENLIST));
+            tks = tks->next;
+        }
+        frame = frame->next;
+    }
+    return tks;
+}
+
 TOKEN* lookup_reg(int x, FRME * frame){
     while(frame != NULL){
         BNDING *bindings = frame->bindings;

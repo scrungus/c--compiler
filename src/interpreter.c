@@ -11,6 +11,7 @@
 extern NODE *tree;
 extern void print_tree(NODE *tree);
 extern VALUE *lookup_name(TOKEN*, FRAME*);
+extern VALUE *lookup_name_curr_frame(TOKEN*, FRAME*);
 extern VALUE *assign_to_name(TOKEN*, FRAME*,VALUE*);
 extern VALUE *declare_name(TOKEN*, FRAME*);
 extern VALUE *declare_func(TOKEN*,VALUE*, FRAME*);
@@ -105,8 +106,8 @@ TOKENLIST* find_tokens(NODE* ids){
 
 FRAME *extend_frame(FRAME* e, NODE *ids, VALUELIST *args){
 
-    if(ids == NULL && args == NULL) {return e;}
     FRAME* new_frame = malloc(sizeof(FRAME));
+    if(ids == NULL && args == NULL) {return new_frame;}
     BINDING *bindings = NULL;
     new_frame->bindings = bindings;
     //while (ids != NULL && args != NULL) {
@@ -161,7 +162,7 @@ VALUE* interpret_tilde(NODE*tree, FRAME* e){
         }
         else if((char)tree->right->type == '='){
                 t = (TOKEN *)tree->right->left->left;
-            if(lookup_name(t,e) == NULL){declare_name(t,e);}
+            if(lookup_name_curr_frame(t,e) == NULL){declare_name(t,e);}
             else {printf("error: multiple declarations of variable '%s'\n",t->lexeme);exit(1);}
             return assign_to_name(t,e,interpret_tree(tree->right->right,e));
         }
@@ -194,25 +195,6 @@ VALUE* if_method(NODE* tree, FRAME* e){
         }
         else{printf("error: condition is not boolean value\n");exit(1);}
     }
-}
-
-VALUE* interpret(NODE* tree){
-    FRAME* e = malloc(sizeof(FRAME));
-    interpret_tree(tree,e);
-    FRAME *ef = e;
-    while(ef != NULL){
-        BINDING* bindings = e->bindings;
-        while (bindings != NULL){
-            if(strcmp(bindings->name->lexeme,"main")==0){
-                NODE* body = bindings->value->closure->code->right;
-                return interpret_tree(body,e);
-            }
-            bindings = bindings->next;
-        }
-        ef = e->next;
-    }
-    printf("No main function. exiting...\n");exit(1);
-
 }
 
 CLOSURE *find_func(TOKEN* name, FRAME* e){
@@ -263,6 +245,24 @@ VALUELIST* find_curr_values(NODE *t, FRAME* e){
     else{
         printf("fatal: invalid parameter in call.\n");exit(1);
     }
+}
+
+VALUE* interpret(NODE* tree){
+    FRAME* e = malloc(sizeof(FRAME));
+    interpret_tree(tree,e);
+    FRAME *ef = e;
+    while(ef != NULL){
+        BINDING* bindings = e->bindings;
+        while (bindings != NULL){
+            if(strcmp(bindings->name->lexeme,"main")==0){
+                return call(bindings->name,e,NULL);
+            }
+            bindings = bindings->next;
+        }
+        ef = e->next;
+    }
+    printf("No main function. exiting...\n");exit(1);
+
 }
 
 VALUE* interpret_tree(NODE *tree, FRAME* e){

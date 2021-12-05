@@ -18,6 +18,19 @@ VALUE *lookup_name(TOKEN * x, FRAME * frame){
     return NULL;
 }
 
+VALUE *lookup_name_curr_frame(TOKEN * x, FRAME * frame){
+    while(frame != NULL){
+        BINDING *bindings = frame->bindings;
+        while(bindings != NULL){
+            if(bindings->name == x){
+                return bindings->value;
+            }
+            bindings = bindings->next;
+        }
+        return NULL;
+    }
+}
+
 VALUE *assign_to_name(TOKEN * x, FRAME * frame, VALUE * val){
     while(frame != NULL){
         BINDING *bindings = frame->bindings;

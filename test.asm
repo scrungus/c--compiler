@@ -1,23 +1,8 @@
 .globl main
 .text
-x:
-# Creating new frame
-lw $t0, 4($sp)
-addiu $sp, $sp -8
-li $t1, 8
-li $t2, 1
-sw $t1, 0($sp)
-addi $t0, $t0 1
-sw $t0, 4($sp)
-sw $t2, 8($sp)
-# End of creating frame
-move $t0 $a0
-move $t0,$t0
-li $t1,1
-add $t2,$t0,$t1
-move $v1 $t2
-jr $ra
-main:
+li $t0,10
+
+f:
 # Creating new frame
 lw $t0, 4($sp)
 addiu $sp, $sp -4
@@ -29,11 +14,26 @@ sw $t0, 4($sp)
 sw $t2, 8($sp)
 # End of creating frame
 
+move $v1 $t0
+jr $ra
+main:
+# Creating new frame
+lw $t0, 4($sp)
+addiu $sp, $sp -8
+li $t1, 8
+li $t2, 1
+sw $t1, 0($sp)
+addi $t0, $t0 1
+sw $t0, 4($sp)
+sw $t2, 8($sp)
+# End of creating frame
+
+li $t1,20
+move $t0 $t1
 # Saving frame
 # End of saving frame
 
-li $a0,1
-jal x
+jal f
 
 move $a0 $v1
 li $v0 1

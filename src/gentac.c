@@ -308,7 +308,7 @@ int count_args(NODE * tree){
 
 TOKENLIST* get_args(NODE *tree){
     TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
-
+    if(tree == NULL){return NULL;}
     if(tree->type == LEAF){
         tokens->name = (TOKEN*)tree->left;
         return tokens;

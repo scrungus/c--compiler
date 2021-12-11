@@ -4,7 +4,6 @@
 #ifndef GENTAC
 #define GENTAC 
 
-
 typedef struct env {
   int dstcounter;
   int lblcounter;
@@ -87,7 +86,7 @@ typedef struct bb {
   struct bb *nexts[2];
 }BB;
 
-BB**gen_tac(NODE*);
+TAC*gen_tac(NODE*);
 TAC* gen_tac0(NODE*, ENV*,FRME*);
 
 

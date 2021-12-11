@@ -36,5 +36,7 @@ unsigned int local[MAXREGS]; // local0 , ... localn ,
 //unsigned int tmp[k];
 } AR;
 
-MC* gen_mc(BB**);
+MC* gen_mc(TAC*);
+MC* gen_mc0(TAC*, FRME*, AR*);
+TOKEN * new_dst(FRME *);
 #endif

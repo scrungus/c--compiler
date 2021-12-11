@@ -259,8 +259,8 @@ extern NODE* yyparse(void);
 extern NODE* ans;
 extern void init_symbtable(void);
 extern VALUE* interpret(NODE*);
-extern BB** gen_tac(NODE*);
-extern MC* gen_mc(BB**);
+extern TAC* gen_tac(NODE*);
+extern MC* gen_mc(TAC*);
 
 int main(int argc, char** argv)
 {
@@ -285,8 +285,9 @@ int main(int argc, char** argv)
 
     printf("----------------------------------------------------------------\n");
     printf("Generating TAC...\n");
-    BB** tac = gen_tac(tree);
-    print_bbs(tac);
+    TAC* tac = gen_tac(tree);
+    print_ic(tac);
+    //print_bbs(tac);
     printf("Generating machine code...\n");
     print_mc(gen_mc(tac));
     return 0;

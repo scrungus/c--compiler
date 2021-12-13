@@ -128,6 +128,73 @@
       \verb https://doi.org/10.1145/390013.808479
       \endverb
     \endentry
+    \entry{price1995mips}{misc}{}
+      \name{author}{1}{}{%
+        {{hash=894122ca20fd692e2f6f64ac6b98c943}{%
+           family={Price},
+           familyi={P\bibinitperiod},
+           given={Charles},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {MIPS Technologies, Inc., Rev}%
+      }
+      \strng{namehash}{894122ca20fd692e2f6f64ac6b98c943}
+      \strng{fullhash}{894122ca20fd692e2f6f64ac6b98c943}
+      \strng{bibnamehash}{894122ca20fd692e2f6f64ac6b98c943}
+      \strng{authorbibnamehash}{894122ca20fd692e2f6f64ac6b98c943}
+      \strng{authornamehash}{894122ca20fd692e2f6f64ac6b98c943}
+      \strng{authorfullhash}{894122ca20fd692e2f6f64ac6b98c943}
+      \field{sortinit}{4}
+      \field{sortinithash}{e071e0bcb44634fab398d68ad04e69f4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{MIPS IV instruction set}
+      \field{year}{1995}
+    \endentry
+    \entry{compilers}{book}{}
+      \name{author}{4}{}{%
+        {{hash=87e9142329f09390b038692270dc2168}{%
+           family={Aho},
+           familyi={A\bibinitperiod},
+           given={Alfred\bibnamedelima V.},
+           giveni={A\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=2935cefbbdea2e46ed9635bd5cf1db28}{%
+           family={Lam},
+           familyi={L\bibinitperiod},
+           given={Monica\bibnamedelima S.},
+           giveni={M\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=b0e677112f976b0ff780553fcb888351}{%
+           family={Sethi},
+           familyi={S\bibinitperiod},
+           given={Ravi},
+           giveni={R\bibinitperiod}}}%
+        {{hash=cafe1d770c56825ebccdb81e9f7c9b3b}{%
+           family={Ullman},
+           familyi={U\bibinitperiod},
+           given={Jeffrey\bibnamedelima D.},
+           giveni={J\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {USA}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley Longman Publishing Co., Inc.}%
+      }
+      \strng{namehash}{e81f18fe5b19a688d5145730fb236624}
+      \strng{fullhash}{b955b20997f1b0d8317cbada66b20151}
+      \strng{bibnamehash}{e81f18fe5b19a688d5145730fb236624}
+      \strng{authorbibnamehash}{e81f18fe5b19a688d5145730fb236624}
+      \strng{authornamehash}{e81f18fe5b19a688d5145730fb236624}
+      \strng{authorfullhash}{b955b20997f1b0d8317cbada66b20151}
+      \field{sortinit}{5}
+      \field{sortinithash}{5dd416adbafacc8226114bc0202d5fdd}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{0321486811}
+      \field{title}{Compilers: Principles, Techniques, and Tools (2nd Edition)}
+      \field{year}{2006}
+    \endentry
   \enddatalist
 \endrefsection
 \endinput

@@ -2347,6 +2347,8 @@
     <bcf:citekey order="1">cooper2011engineering</bcf:citekey>
     <bcf:citekey order="2">aho1986compilers</bcf:citekey>
     <bcf:citekey order="3">cfg</bcf:citekey>
+    <bcf:citekey order="4">price1995mips</bcf:citekey>
+    <bcf:citekey order="5">compilers</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

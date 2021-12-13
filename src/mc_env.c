@@ -157,6 +157,6 @@ CLSURE *find_fnc(TOKEN* name, FRME* e){
         }
          ef = ef->next;
      }
-     printf("No function %s in scope, exiting...\n",name->lexeme);exit(1);
+     return NULL;
 }
 

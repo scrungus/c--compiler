@@ -92,7 +92,7 @@ void print_tree(NODE *tree)
     print_tree0(tree, 0);
 }
 
-char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE","IF","LABEL","GOTO","CALL","RETURN"};
+char* tac_ops[] = {"","ADD","SUB","DIV","MOD","MULT","PROC","ENDPROC","LOAD","STORE","IF","LABEL","GOTO","CALL","RETURN","INNER_PROC"};
 
 void print_if(TAC* tac){
   if(tac->ift.op1->type == IDENTIFIER && tac->ift.op2->type == IDENTIFIER){
@@ -182,6 +182,12 @@ void print_ic(TAC* tac){
         tac->ld.dst->lexeme);
         break;
       case tac_proc:
+        printf("%s %s %i\n",
+        tac_ops[tac->op],
+        tac->proc.name->lexeme,
+        tac->proc.arity);
+        break;
+      case tac_innerproc:
         printf("%s %s %i\n",
         tac_ops[tac->op],
         tac->proc.name->lexeme,

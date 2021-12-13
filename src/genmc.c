@@ -22,7 +22,19 @@ int call_stack;
 // I.E. IF YOU HAVE A FUNCTION CALL ITSELF X TIMES, IT WILL BE X*SIZE HIGH ON THE STACK, BUT ITS LEXICAL SCOPE IS ONLY ONE DEEP. 
 
 TAC* find_endproc(TAC* i){
-  while(i != NULL && i->op != tac_endproc){
+  int nested_depth = 0;
+  while(i != NULL){
+    if(i->op == tac_innerproc){
+      nested_depth++;
+    }
+    if(i->op == tac_endproc){
+      if(nested_depth == 0){
+        return i;
+      }
+      else{
+        nested_depth--;
+      }
+    }
     i = i->next;
   }
   return i;
@@ -148,6 +160,7 @@ TOKEN* lookup_from_memory(TOKEN* name, FRME* e, AR* ar){
           t = new_token(IDENTIFIER);
           t->lexeme = malloc(sizeof(INSN_BUF));
           sprintf(t->lexeme,"%d($sp)",call_stack+ar->size-e->stack_pos-8-4*i);
+          return t;
         }
         if(bindings->type == IDENTIFIER){
           i++;
@@ -196,7 +209,7 @@ MC* new_ld(FRME *e, TAC* tac, AR* curr){
 
 MC* new_ift(TAC* tac, FRME* e){
   TOKEN* dst1 = lookup_loc(tac->ift.op1,e);
-  MC* mc;
+  MC* mc = NULL;
   if(dst1 == NULL){
     dst1 = new_dst(e);
     declare_var(tac->ift.op1,e);
@@ -367,6 +380,7 @@ MC* gen_globframe(TAC* tac, FRME* e, AR* global){
           f = malloc(sizeof(CLSURE));
           f->env = e;
           f->code = tac; 
+          f->processed = 0;
           declare_fnc(tac->proc.name,f,e);
           tac = find_endproc(tac);
       }
@@ -425,12 +439,17 @@ MC* restore_frame(AR* ar, FRME *e){
 MC *call_func(TOKEN* name, FRME* e, AR* curr){
   TOKEN* t = (TOKEN *)name;
   CLSURE *f = find_fnc(t,e);
-  FRME* ef = malloc(sizeof(FRME));
-  ef->next = f->env;
-  call_stack += curr->size;
-  ef->stack_pos = call_stack;
-  MC* mc = gen_mc0(f->code,ef,curr);
-  return mc;
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  if(!f->processed){
+    f->processed = 1;
+    FRME* ef = malloc(sizeof(FRME));
+    ef->next = f->env;
+    call_stack += curr->size;
+    ef->stack_pos = call_stack;
+    mc = gen_mc0(f->code,ef,curr);
+  }
+   return mc;
 }
 
 
@@ -468,6 +487,10 @@ MC* new_rtn(TAC* tac, FRME* e, AR* ar){
     last->next =  malloc(sizeof(MC));
     last->next->insn = malloc(sizeof(INSN_BUF));
     sprintf(last->next->insn,"addiu $sp, $sp %d",ar->size);
+    last = find_lst(last);
+    last->next =  malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    sprintf(last->next->insn,"jr $ra");
     return mc;
 }
 
@@ -475,25 +498,32 @@ MC* new_prc(TAC* tac, FRME* e){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
-  MC* last = find_lst(mc);
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
+  
+  return mc;
+}
+
+MC* load_args(TAC* tac, FRME* e){
+  MC *mc = malloc(sizeof(MC));
+  mc->insn = malloc(sizeof(INSN_BUF));
+  MC* first = mc;
   TOKENLIST* vars = tac->proc.args;
   TOKEN* t;
   int i = 0;
   while(i < tac->proc.arity && vars != NULL){
+    mc->next = malloc(sizeof(MC));
+    mc->next->insn = malloc(sizeof(INSN_BUF));
     t = new_dst(e);
-    sprintf(last->next->insn,"move $%s $a%d",t->lexeme,i);
-    last = find_lst(last);
+    sprintf(mc->next->insn,"move $%s $a%d",t->lexeme,i);
+    mc = find_lst(mc);
     declare_var(vars->name,e);
     assign_to_var(vars->name,e,t);
     vars = vars->next;
     i++;
   }
-  return mc;
+  return first;
 }
 
-MC* new_cll(TAC* tac, FRME* e){
+MC* new_cll(TAC* tac, FRME* e, AR* ar){
   MC* mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   MC* last = find_lst(mc);
@@ -502,8 +532,14 @@ MC* new_cll(TAC* tac, FRME* e){
     TOKEN* t = new_token(IDENTIFIER); 
     t->lexeme = (char*)calloc(1,2);
     sprintf(t->lexeme,"a%d",i);
-    last->next = new_smpl_ld(e,tac->call.args->name,t);
+    if(tac->call.args->name->type == IDENTIFIER){
+      last->next = new_smpl_ld(e,lookup_loc(tac->call.args->name,e),t);
+    }
+    else{
+       last->next = new_smpl_ld(e,tac->call.args->name,t);
+    }   
     last = find_lst(last);
+    tac->call.args = tac->call.args->next;
     i++;
   }
   last = find_lst(last);
@@ -515,6 +551,8 @@ MC* new_cll(TAC* tac, FRME* e){
 
 MC* gen_mc0(TAC* i, FRME* e, AR* curr){
   MC* mc, *last;
+  CLSURE* f;
+  TOKEN* name;
   if (i==NULL || i->op == tac_endproc) 
   {delete_constants(e); mc = new_func_rtn(i); return mc;}
 
@@ -544,12 +582,26 @@ MC* gen_mc0(TAC* i, FRME* e, AR* curr){
       mc = new_mult(i);
       mc->next = gen_mc0(i->next,e,curr);
       return mc;
+    case tac_innerproc:
+      name = i->proc.name;
+      f = find_fnc(name,e);
+      if (f == NULL){
+        f = malloc(sizeof(CLSURE));
+        f->env = e;
+        f->code = i; 
+        declare_fnc(i->proc.name,f,e);
+        i = find_endproc(i->next);
+        mc = gen_mc0(i->next,e,curr);
+        return mc;
+      }
     case tac_proc:
       curr = calculate_frame(curr,i);
       e->size = curr->size;
       mc = new_prc(i,e);
       last = find_lst(mc);
       last->next = gen_frame(curr);
+      last = find_lst(last);
+      last->next = load_args(i,e);
       last = find_lst(last);
       last->next = gen_mc0(i->next,e,curr);
       return mc;
@@ -580,13 +632,14 @@ MC* gen_mc0(TAC* i, FRME* e, AR* curr){
     case tac_call:
       mc = save_frame(curr,e);
       last = find_lst(mc);
-      last->next = new_cll(i,e);
+      last->next = new_cll(i,e,curr);
       last = find_lst(last);
       last->next = restore_frame(curr,e);
       last = find_lst(last);
       last->next = gen_mc0(i->next,e,curr);
       last = find_lst(last);
       last->next = call_func(i->call.name,e,curr);
+
       return mc;
     case tac_rtn:
       mc = new_rtn(i,e,curr);

@@ -11,6 +11,7 @@ typedef struct frme FRME;
 typedef struct clsure {
 FRME* env;
 TAC* code;
+int processed;
 } CLSURE;
 
 typedef struct bnding {

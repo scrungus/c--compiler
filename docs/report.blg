@@ -1,0 +1,19 @@
+[0] Config.pm:311> INFO - This is Biber 2.16
+[0] Config.pm:314> INFO - Logfile is 'report.blg'
+[84] biber:340> INFO - === Mon Dec 13, 2021, 18:09:54
+[100] Biber.pm:415> INFO - Reading 'report.bcf'
+[179] Biber.pm:952> INFO - Found 3 citekeys in bib section 0
+[195] Biber.pm:4340> INFO - Processing section 0
+[207] Biber.pm:4531> INFO - Looking for bibtex format file 'lib.bib' for section 0
+[208] bibtex.pm:1689> INFO - LaTeX decoding ...
+[215] bibtex.pm:1494> INFO - Found BibTeX data source 'lib.bib'
+[260] Utils.pm:384> WARN - legacy month field 'jul' in entry 'cfg' is not an integer - this will probably not sort properly.
+[261] Utils.pm:384> WARN - BibTeX subsystem: /tmp/biber_tmp_iAnV/0e04ca0c8092d95de8fa9a92148e45c0_46408.utf8, line 19, warning: 1 characters of junk seen at toplevel
+[261] Utils.pm:384> WARN - BibTeX subsystem: /tmp/biber_tmp_iAnV/0e04ca0c8092d95de8fa9a92148e45c0_46408.utf8, line 25, warning: 1 characters of junk seen at toplevel
+[273] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[273] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[273] Biber.pm:4168> INFO - Sorting list 'none/global//global/global' of type 'entry' with template 'none' and locale 'en-US'
+[273] Biber.pm:4174> INFO - No sort tailoring available for locale 'en-US'
+[280] bbl.pm:654> INFO - Writing 'report.bbl' with encoding 'UTF-8'
+[282] bbl.pm:757> INFO - Output to report.bbl
+[283] Biber.pm:128> INFO - WARNINGS: 3

@@ -7,7 +7,6 @@
 typedef struct env {
   int dstcounter;
   int lblcounter;
-  int argcounter;
   TOKEN* currlbl;
 }ENV;
 
@@ -27,7 +26,8 @@ enum tac_op
     tac_lbl = 11,
     tac_goto = 12,
     tac_call = 13,
-    tac_rtn = 14
+    tac_rtn = 14,
+    tac_innerproc = 15
   };
 
 typedef struct simple_tac {
@@ -87,7 +87,7 @@ typedef struct bb {
 }BB;
 
 TAC*gen_tac(NODE*);
-TAC* gen_tac0(NODE*, ENV*,FRME*);
+TAC* gen_tac0(NODE*, ENV*,FRME*,int);
 
 
 #endif

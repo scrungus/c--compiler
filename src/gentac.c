@@ -158,8 +158,8 @@ TAC* new_store(TOKEN* name, TOKEN* dst, FRME *e,ENV* env){
 
 int count_params(NODE * tree){
     int count = 0;
-    if (tree == NULL || tree->type == INT) {return 0;}
-    if( tree->type == LEAF && tree->left->type == IDENTIFIER){
+    if (tree == NULL || tree->type == INT || tree->type == FUNCTION || tree->type == STRING_LITERAL) {return 0;}
+    if( tree->type == LEAF && tree->left->type==IDENTIFIER){
         return 1;
     }
     else{
@@ -293,7 +293,7 @@ TOKENLIST* get_args(NODE *tree, ENV* env, FRME* e){
     TOKENLIST* tokens = malloc(sizeof(TOKENLIST));
     if(tree == NULL){return NULL;}
     char c = (char)tree->type;
-    if(tree->type == LEAF|| tree->type == APPLY){
+    if(tree->type == LEAF){
         tokens->name = (TOKEN*)tree->left;
         return tokens;
     }
@@ -317,6 +317,7 @@ TAC* new_call(NODE* tree, ENV* env, FRME* e){
 
 TAC* new_return(NODE* tree, ENV* env, FRME* e, int depth){
     TAC* ans = empty_tac();
+    TAC* last; 
     ans->op = tac_rtn;
     if (tree->type==LEAF){
         TOKEN *t = (TOKEN *)tree->left;
@@ -325,6 +326,10 @@ TAC* new_return(NODE* tree, ENV* env, FRME* e, int depth){
     }
     else if (tree->type==APPLY){
        ans = new_call(tree,env,e);
+       last = find_last(ans);
+       last->next = empty_tac();
+       last->next->op = tac_rtn;
+       last->next->rtn.type = tac_call;
     }
     else{
         TAC* tac = gen_tac0(tree,env,e,depth);
@@ -388,6 +393,9 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 if(last->stac.dst != NULL){
                     last->next = new_store(last->stac.dst,t,e,env);
                 }
+                else if(last->op = tac_call){
+                    last->next = new_store(new_dest(e),t,e,env);
+                }
                 else{  last->next = new_store(last->ld.dst,t,e,env); }
                 delete_constants(e);
                 return tac;
@@ -398,7 +406,10 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 last->next = gen_tac0(tree->right,env,e,depth);
                 right = find_last_dest(last->next);
                 last = find_last(last);
-                last->next = new_stac(tac_plus,left,right,new_dest(e));
+                t = new_token(CONSTANT);
+                declare_var(t,e);
+                assign_to_var(t,e,new_dest(e));
+                last->next = new_stac(tac_plus,left,right,lookup_loc(t,e));
                 return tac;
             case '-':
                 tac = gen_tac0(tree->left,env,e,depth);
@@ -407,7 +418,10 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 last->next = gen_tac0(tree->right,env,e,depth);
                 right = find_last_dest(last->next);
                 last = find_last(last);
-                last->next = new_stac(tac_minus,left,right,new_dest(e));
+                t = new_token(CONSTANT);
+                declare_var(t,e);
+                assign_to_var(t,e,new_dest(e));
+                last->next = new_stac(tac_minus,left,right,lookup_loc(t,e));
                 return tac;
             case '*':
                 tac = gen_tac0(tree->left,env,e,depth);
@@ -416,7 +430,10 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 last->next = gen_tac0(tree->right,env,e,depth);
                 right = find_last_dest(last->next);
                 last = find_last(last);
-                last->next = new_stac(tac_mult,left,right,new_dest(e));
+                t = new_token(CONSTANT);
+                declare_var(t,e);
+                assign_to_var(t,e,new_dest(e));
+                last->next = new_stac(tac_mult,left,right,lookup_loc(t,e));
                 return tac;
             case '/':
                 tac = gen_tac0(tree->left,env,e,depth);
@@ -425,7 +442,10 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 last->next = gen_tac0(tree->right,env,e,depth);
                 right = find_last_dest(last->next);
                 last = find_last(last);
-                last->next = new_stac(tac_div,left,right,new_dest(e));
+                t = new_token(CONSTANT);
+                declare_var(t,e);
+                assign_to_var(t,e,new_dest(e));
+                last->next = new_stac(tac_div,left,right,lookup_loc(t,e));
                 return tac;
             case '%':
                 tac = gen_tac0(tree->left,env,e,depth);
@@ -434,7 +454,10 @@ TAC *gen_tac0(NODE *tree, ENV* env, FRME* e, int depth){
                 last->next = gen_tac0(tree->right,env,e,depth);
                 right = find_last_dest(last->next);
                 last = find_last(last);
-                last->next = new_stac(tac_mod,left,right,new_dest(e));
+                t = new_token(CONSTANT);
+                declare_var(t,e);
+                assign_to_var(t,e,new_dest(e));
+                last->next = new_stac(tac_mod,left,right,lookup_loc(t,e));
                 return tac;
         }
     }

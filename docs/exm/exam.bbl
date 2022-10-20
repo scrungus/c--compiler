@@ -1,0 +1,221 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{vilk_berger}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=a3f25a2f895938c240b8b0429298b55a}{%
+           family={Vilk},
+           familyi={V\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=6ad677bc0ccea25ae32ea445c9e85cca}{%
+           family={Berger},
+           familyi={B\bibinitperiod},
+           given={Emery\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+      }
+      \strng{namehash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \strng{fullhash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \strng{bibnamehash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \strng{authorbibnamehash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \strng{authornamehash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \strng{authorfullhash}{ffcae30c31e9e738fe8fd48a1b962327}
+      \field{sortinit}{1}
+      \field{sortinithash}{50c6687d7fc80f50136d75228e3c59ba}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{GitHub}
+      \field{title}{Plasma-umass/bleak: Bleak: Automatically debugging memory leaks in web applications}
+      \verb{urlraw}
+      \verb https://github.com/plasma-umass/BLeak
+      \endverb
+      \verb{url}
+      \verb https://github.com/plasma-umass/BLeak
+      \endverb
+    \endentry
+    \entry{10.1145/1542476.1542521}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=036f06136d1f7651fb8fe7d5a1b52034}{%
+           family={Novark},
+           familyi={N\bibinitperiod},
+           given={Gene},
+           giveni={G\bibinitperiod}}}%
+        {{hash=6ad677bc0ccea25ae32ea445c9e85cca}{%
+           family={Berger},
+           familyi={B\bibinitperiod},
+           given={Emery\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=0b383640f97cb0d045327d2ac8da7bab}{%
+           family={Zorn},
+           familyi={Z\bibinitperiod},
+           given={Benjamin\bibnamedelima G.},
+           giveni={B\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Dublin, Ireland}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \strng{fullhash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \strng{bibnamehash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \strng{authorbibnamehash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \strng{authornamehash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \strng{authorfullhash}{01bb750a72b578f533cdfc10f1aa7e1d}
+      \field{sortinit}{2}
+      \field{sortinithash}{ed39bb39cf854d5250e95b1c1f94f4ed}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Inefficient use of memory, including leaks and bloat, remain a significant challenge for C and C++ developers. Applications with these problems become slower over time as their working set grows and can become unresponsive. At the same time, memory leaks and bloat remain notoriously difficult to debug, and comprise a large number of reported bugs in mature applications. Previous tools for diagnosing memory inefficiencies-based on garbage collection, binary rewriting, or code sampling-impose high overheads (up to 100X) or generate many false alarms.This paper presents Hound, a runtime system that helps track down the sources of memory leaks and bloat in C and C++ applications. Hound employs data sampling, a staleness-tracking approach based on a novel heap organization, to make it both precise and efficient. Hound has no false positives, and its runtime and space overhead are low enough that it can be used in deployed applications. We demonstrate Hound's efficacy across a suite of synthetic benchmarks and real applications.}
+      \field{booktitle}{Proceedings of the 30th ACM SIGPLAN Conference on Programming Language Design and Implementation}
+      \field{isbn}{9781605583921}
+      \field{series}{PLDI '09}
+      \field{title}{Efficiently and Precisely Locating Memory Leaks and Bloat}
+      \field{year}{2009}
+      \field{pages}{397\bibrangedash 407}
+      \range{pages}{11}
+      \verb{doi}
+      \verb 10.1145/1542476.1542521
+      \endverb
+      \verb{urlraw}
+      \verb https://doi-org.ezproxy1.bath.ac.uk/10.1145/1542476.1542521
+      \endverb
+      \verb{url}
+      \verb https://doi-org.ezproxy1.bath.ac.uk/10.1145/1542476.1542521
+      \endverb
+      \keyw{memory leak detection,dynamic memory allocation,heap profiling,virtual compaction,hound}
+    \endentry
+    \entry{10.1007/978-3-540-45070-2_16}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=db137b3ff914ecf1c85c50cc9a6cd531}{%
+           family={Mitchell},
+           familyi={M\bibinitperiod},
+           given={Nick},
+           giveni={N\bibinitperiod}}}%
+        {{hash=a2ed8b5ae8d837ca762e12a0035b451c}{%
+           family={Sevitsky},
+           familyi={S\bibinitperiod},
+           given={Gary},
+           giveni={G\bibinitperiod}}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=081a17a005a2ab94a60ccd76c206e9f0}{%
+           family={Cardelli},
+           familyi={C\bibinitperiod},
+           given={Luca},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer Berlin Heidelberg}%
+      }
+      \strng{namehash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{fullhash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{bibnamehash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{authorbibnamehash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{authornamehash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{authorfullhash}{041b70ecdec74bea2030920bcb1b4c58}
+      \strng{editorbibnamehash}{081a17a005a2ab94a60ccd76c206e9f0}
+      \strng{editornamehash}{081a17a005a2ab94a60ccd76c206e9f0}
+      \strng{editorfullhash}{081a17a005a2ab94a60ccd76c206e9f0}
+      \field{sortinit}{3}
+      \field{sortinithash}{a37a8ef248a93c322189792c34fc68c9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Despite Java's automatic reclamation of memory, memory leaks remain an important problem. For example, we frequently encounter memory leaks that cause production servers to crash. These servers represent an increasingly common class of Java applications: they are large scale and they make heavy use of frameworks. For these applications, existing tools require too much expertise, and, even for experts, require many hours interpreting low-level details. In addition, they are often too expensive to use in practice. We present an automated, adaptive, and scalable tool for diagnosing memory leaks, called LeakBot.}
+      \field{booktitle}{ECOOP 2003 -- Object-Oriented Programming}
+      \field{isbn}{978-3-540-45070-2}
+      \field{title}{LeakBot: An Automated and Lightweight Tool for Diagnosing Memory Leaks in Large Java Applications}
+      \field{year}{2003}
+      \field{pages}{351\bibrangedash 377}
+      \range{pages}{27}
+    \endentry
+    \entry{10.1145/2491509.2491511}{article}{}
+      \name{author}{2}{}{%
+        {{hash=643c2cdd8a762fd450bc0096ca47a982}{%
+           family={Xu},
+           familyi={X\bibinitperiod},
+           given={Guoqing},
+           giveni={G\bibinitperiod}}}%
+        {{hash=60515cd1b6652d2e1b2698a955bcc108}{%
+           family={Rountev},
+           familyi={R\bibinitperiod},
+           given={Atanas},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery}%
+      }
+      \strng{namehash}{b904ad06805ede8d3fe825e4a39afb74}
+      \strng{fullhash}{b904ad06805ede8d3fe825e4a39afb74}
+      \strng{bibnamehash}{b904ad06805ede8d3fe825e4a39afb74}
+      \strng{authorbibnamehash}{b904ad06805ede8d3fe825e4a39afb74}
+      \strng{authornamehash}{b904ad06805ede8d3fe825e4a39afb74}
+      \strng{authorfullhash}{b904ad06805ede8d3fe825e4a39afb74}
+      \field{sortinit}{4}
+      \field{sortinithash}{e071e0bcb44634fab398d68ad04e69f4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{A memory leak in a Java program occurs when object references that are no longer needed are unnecessarily maintained. Such leaks are difficult to detect because static analysis typically cannot precisely identify these redundant references, and existing dynamic leak detection tools track and report fine-grained information about individual objects, producing results that are usually hard to interpret and lack precision.In this article we introduce a novel container-based heap-tracking technique, based on the fact that many memory leaks in Java programs occur due to incorrect uses of containers, leading to containers that keep references to unused data entries. The novelty of the described work is twofold: (1) instead of tracking arbitrary objects and finding leaks by analyzing references to unused objects, the technique tracks only containers and directly identifies the source of the leak, and (2) the technique computes a confidence value for each container based on a combination of its memory consumption and its elements' staleness (time since last retrieval), while previous approaches do not consider such combined metrics. Our experimental results show that the reports generated by the proposed technique can be very precise: for two bugs reported by Sun, a known bug in SPECjbb 2000, and an example bug from IBM developerWorks, the top containers in the reports include the containers that leak memory.}
+      \field{issn}{1049-331X}
+      \field{journaltitle}{ACM Trans. Softw. Eng. Methodol.}
+      \field{month}{7}
+      \field{number}{3}
+      \field{title}{Precise Memory Leak Detection for Java Software Using Container Profiling}
+      \field{volume}{22}
+      \field{year}{2013}
+      \verb{doi}
+      \verb 10.1145/2491509.2491511
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1145/2491509.2491511
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1145/2491509.2491511
+      \endverb
+      \keyw{leaking confidence,Memory leaks,container profiling}
+    \endentry
+    \entry{google_accounts}{misc}{}
+      \list{publisher}{1}{%
+        {Google}%
+      }
+      \field{sortinit}{5}
+      \field{sortinithash}{5dd416adbafacc8226114bc0202d5fdd}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Google Accounts}
+      \field{title}{Bug: Destroying Google Map Instance Never Frees Memory}
+      \verb{urlraw}
+      \verb https://issuetracker.google.com/issues/35821412?pli=1
+      \endverb
+      \verb{url}
+      \verb https://issuetracker.google.com/issues/35821412?pli=1
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

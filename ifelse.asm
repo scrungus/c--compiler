@@ -22,39 +22,22 @@ li $v0 10
 syscall
 _main:
 # Creating new frame
-addiu $sp, $sp -12
+addiu $sp, $sp -16
 sw $ra, 4($sp)
-li $t1, 12
+li $t1, 16
 sw $t1, 0($sp)
 # End of creating frame
 
-# Saving frame
-# End of saving frame
+li $t0,1
 
-li $a0,3
-li $a1,1
-jal f
-# Restoring frame
-lw $ra 4($sp)
-# End of restoring frame
-
-addiu $sp, $sp 12
+li $t2,2
+bne $t0 $t2 L1
+li $v1 1
+addiu $sp, $sp 16
 jr $ra
-
-f:
-# Creating new frame
-addiu $sp, $sp -20
-sw $ra, 4($sp)
-li $t1, 20
-sw $t1, 0($sp)
-# End of creating frame
-
-move $t0 $a0
-move $t1 $a1
-move $t0,$t1
-move $t1,$t0
-add $t2,$t0,$t1
-move $v1 $t2
-addiu $sp, $sp 20
+j L2
+L1:
+li $v1 0
+addiu $sp, $sp 16
 jr $ra
-jr $ra
+L2:

@@ -154,7 +154,7 @@ VALUE* make_value_string(char* str){
 
 VALUE* interpret_tilde(NODE*tree, FRAME* e){
     TOKEN* t;
-    if(tree->left->left->type==INT){
+    if(tree->left->left->type==INT || tree->left->left->type==FUNCTION || tree->left->left->type==STRING_LITERAL){
         if(tree->right->type == LEAF){
             t = (TOKEN *)tree->right->left;
             if(lookup_name(t,e) == NULL){return declare_name(t,e);}

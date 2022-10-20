@@ -132,11 +132,8 @@ void print_if(TAC* tac){
 
 void print_rtn(TAC* tac){
   if(tac->rtn.type == tac_call){
-    printf("%s %s %s %i\n",
-    tac_ops[tac->op],
-    tac_ops[tac->rtn.type],
-    tac->rtn.call.name->lexeme,
-    tac->rtn.call.arity);
+    printf("%s\n",
+    tac_ops[tac->op]);
   }
   else if (tac->rtn.type == CONSTANT){
     printf("%s %i\n",

@@ -18,9 +18,6 @@ extern TOKEN* use_temp_reg(FRME *);
 
 int call_stack;
 
-//PROBLEM : HOW DO YOU TRACK THE CALL STACK, AND MAKE SURE THAT THE SCOPE YOU USE IS LEXICAL?
-// I.E. IF YOU HAVE A FUNCTION CALL ITSELF X TIMES, IT WILL BE X*SIZE HIGH ON THE STACK, BUT ITS LEXICAL SCOPE IS ONLY ONE DEEP. 
-
 TAC* find_endproc(TAC* i){
   int nested_depth = 0;
   while(i != NULL){
@@ -84,7 +81,7 @@ MC* new_div(TAC* tac){
   sprintf(mc->insn,"div $%s,$%s",tac->stac.src1->lexeme,tac->stac.src2->lexeme);
   mc->next = malloc(sizeof(MC));
   mc->next->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->next->insn,"move $%s,$lo",tac->stac.dst->lexeme);
+  sprintf(mc->next->insn,"mflo $%s",tac->stac.dst->lexeme);
   return mc;
 }
 MC* new_mod(TAC* tac){
@@ -93,13 +90,16 @@ MC* new_mod(TAC* tac){
   sprintf(mc->insn,"div $%s,$%s",tac->stac.src1->lexeme,tac->stac.src2->lexeme);
   mc->next = malloc(sizeof(MC));
   mc->next->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->next->insn,"move $%s,$hi",tac->stac.dst->lexeme);
+  sprintf(mc->next->insn,"mfhi $%s",tac->stac.dst->lexeme);
   return mc;
 }
 MC* new_mult(TAC* tac){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->insn,"mul $%s,$%s,$%s",tac->stac.dst->lexeme,tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  sprintf(mc->insn,"mult $%s,$%s",tac->stac.src1->lexeme,tac->stac.src2->lexeme);
+  mc->next = malloc(sizeof(MC));
+  mc->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(mc->next->insn,"mflo $%s",tac->stac.dst->lexeme);
   return mc;
 }
 MC* new_plus(TAC* tac){
@@ -112,7 +112,7 @@ MC* new_plus(TAC* tac){
 MC* init_mc(){
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
-    mc->insn = ".globl premain";
+    mc->insn = ".globl main";
     mc->next = malloc(sizeof(MC));
     mc->next->insn = malloc(sizeof(INSN_BUF));
     mc->next->insn = ".text";
@@ -183,7 +183,7 @@ MC* new_ld(FRME *e, TAC* tac, AR* curr){
         TOKEN *loc = lookup_loc(tac->ld.src1,e);
         if(loc == NULL){
           loc = lookup_from_memory(tac->ld.src1,e,curr);
-          sprintf(mc->insn, "lw $%s,$%s",tac->ld.dst->lexeme,loc->lexeme);
+          sprintf(mc->insn, "lw $%s, %s",tac->ld.dst->lexeme,loc->lexeme);
         }
         else{
           sprintf(mc->insn, "move $%s,$%s",tac->ld.dst->lexeme,loc->lexeme);
@@ -202,7 +202,7 @@ MC* new_ld(FRME *e, TAC* tac, AR* curr){
     assign_to_var(tac->ld.dst,e,tac->ld.src1);
   }
   else if(t->value != tac->ld.src1->value) {
-    sprintf(mc->insn,"move $%s $%s",t->lexeme,tac->ld.src1->lexeme);
+    assign_to_var(tac->ld.dst,e,tac->ld.src1);
   }
   return mc; 
 }
@@ -317,6 +317,12 @@ MC* gen_frame(AR* ar){
   sprintf(last->next->insn,"addiu $sp, $sp -%d",ar->size);
   last = find_lst(mc);
 
+  //load return address
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  sprintf(last->next->insn,"sw $ra, 4($sp)");
+  last = find_lst(mc);
+
   //load new size into reg
   last->next = malloc(sizeof(MC));
   last->next->insn = malloc(sizeof(INSN_BUF));
@@ -327,29 +333,6 @@ MC* gen_frame(AR* ar){
   last->next = malloc(sizeof(MC));
   last->next->insn = malloc(sizeof(INSN_BUF));
   last->next->insn = "sw $t1, 0($sp)";
-  last = find_lst(mc);
-
-  //load new arity into reg
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
-  sprintf(last->next->insn,"li $t2, %d",ar->arity);
-  last = find_lst(mc);
-
-  //store arity on stack
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
-  last->next->insn = "sw $t2, 8($sp)";
-  last = find_lst(mc);
-
-  //store sl on stack
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
-  sprintf(last->next->insn,"li $t3, %d",ar->sl);
-  last = find_lst(mc);
-
-  last->next = malloc(sizeof(MC));
-  last->next->insn = malloc(sizeof(INSN_BUF));
-  last->next->insn = "sw $t3, 4($sp)";
   last = find_lst(mc);
 
   last->next = malloc(sizeof(MC));
@@ -389,7 +372,7 @@ MC* gen_globframe(TAC* tac, FRME* e, AR* global){
   e->size = global->size;
   MC* first =malloc(sizeof(MC));
   first->insn = malloc(sizeof(INSN_BUF));
-  first->insn = "premain: ";
+  first->insn = "main: ";
   MC* r = find_lst(first);
   r->next = gen_frame(global);
   r = find_lst(r);
@@ -429,21 +412,54 @@ MC* restore_frame(AR* ar, FRME *e){
     }
     break;
   }
+  //restore return address
   last->next = malloc(sizeof(MC));
   last->next->insn = malloc(sizeof(INSN_BUF));
-  last->next->insn = "# End of saving frame";
+  last->next->insn = "lw $ra 4($sp)";
+  last = find_lst(last);
+
+  last->next = malloc(sizeof(MC));
+  last->next->insn = malloc(sizeof(INSN_BUF));
+  last->next->insn = "# End of restoring frame";
   return mc;
 }
 
+FRME *extend_frme(FRME* e, TAC *ids, TOKENLIST *args){
 
-MC *call_func(TOKEN* name, FRME* e, AR* curr){
+    FRME* new_frame = malloc(sizeof(FRME));
+    if(ids == NULL && args == NULL) {return new_frame;}
+    BNDING *bindings = NULL;
+    new_frame->bindings = bindings;
+    //while (ids != NULL && args != NULL) {
+       TOKENLIST* tokens = ids->proc.args;
+       TOKEN* loc; 
+       while(tokens != NULL && args != NULL){
+            declare_var(tokens->name,new_frame);
+            assign_to_var(tokens->name,new_frame,new_dst(new_frame));
+            tokens=tokens->next;
+            args = args->next;
+       }
+       if(!(tokens == NULL && args == NULL)){
+           printf("error: invalid number of arguments and/or tokens, exiting...\n");exit(1);
+       }
+    return new_frame;
+}
+
+
+MC *call_func(TOKEN* name, TAC* call, FRME* e, AR* curr){
   TOKEN* t = (TOKEN *)name;
   CLSURE *f = find_fnc(t,e);
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
   if(!f->processed){
     f->processed = 1;
-    FRME* ef = malloc(sizeof(FRME));
+    FRME* ef;
+    if(call != NULL){
+      ef = extend_frme(e,f->code,call->call.args);
+    }
+    else{
+      ef = extend_frme(e,f->code,NULL);
+    }
     ef->next = f->env;
     call_stack += curr->size;
     ef->stack_pos = call_stack;
@@ -479,7 +495,7 @@ MC* new_rtn(TAC* tac, FRME* e, AR* ar){
         sprintf(mc->insn,"move $v1 $%s",tac->rtn.v->lexeme);
       }
       else{
-        sprintf(mc->insn,"lw $v1 %s",t->lexeme);
+        sprintf(mc->insn,"move $v1 $%s",t->lexeme);
       }
     }
     call_stack -= e->size;
@@ -497,8 +513,12 @@ MC* new_rtn(TAC* tac, FRME* e, AR* ar){
 MC* new_prc(TAC* tac, FRME* e){
   MC *mc = malloc(sizeof(MC));
   mc->insn = malloc(sizeof(INSN_BUF));
-  sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
-  
+  if(strcmp(tac->proc.name->lexeme,"main")==0){
+    sprintf(mc->insn,"_%s:",tac->proc.name->lexeme);
+  }
+  else{
+    sprintf(mc->insn,"%s:",tac->proc.name->lexeme);
+  }
   return mc;
 }
 
@@ -512,11 +532,9 @@ MC* load_args(TAC* tac, FRME* e){
   while(i < tac->proc.arity && vars != NULL){
     mc->next = malloc(sizeof(MC));
     mc->next->insn = malloc(sizeof(INSN_BUF));
-    t = new_dst(e);
+    t = lookup_loc(vars->name,e);
     sprintf(mc->next->insn,"move $%s $a%d",t->lexeme,i);
     mc = find_lst(mc);
-    declare_var(vars->name,e);
-    assign_to_var(vars->name,e,t);
     vars = vars->next;
     i++;
   }
@@ -528,18 +546,19 @@ MC* new_cll(TAC* tac, FRME* e, AR* ar){
   mc->insn = malloc(sizeof(INSN_BUF));
   MC* last = find_lst(mc);
   int i=0;
-  while(i< tac->call.arity && tac->call.args != NULL){
+  TOKENLIST* args = tac->call.args;
+  while(i< tac->call.arity && args != NULL){
     TOKEN* t = new_token(IDENTIFIER); 
     t->lexeme = (char*)calloc(1,2);
     sprintf(t->lexeme,"a%d",i);
     if(tac->call.args->name->type == IDENTIFIER){
-      last->next = new_smpl_ld(e,lookup_loc(tac->call.args->name,e),t);
+      last->next = new_smpl_ld(e,lookup_loc(args->name,e),t);
     }
     else{
-       last->next = new_smpl_ld(e,tac->call.args->name,t);
+       last->next = new_smpl_ld(e,args->name,t);
     }   
     last = find_lst(last);
-    tac->call.args = tac->call.args->next;
+    args = args->next;
     i++;
   }
   last = find_lst(last);
@@ -580,7 +599,8 @@ MC* gen_mc0(TAC* i, FRME* e, AR* curr){
       return mc;
     case tac_mult:
       mc = new_mult(i);
-      mc->next = gen_mc0(i->next,e,curr);
+      last = find_lst(mc);
+      last->next = gen_mc0(i->next,e,curr);
       return mc;
     case tac_innerproc:
       name = i->proc.name;
@@ -638,7 +658,7 @@ MC* gen_mc0(TAC* i, FRME* e, AR* curr){
       last = find_lst(last);
       last->next = gen_mc0(i->next,e,curr);
       last = find_lst(last);
-      last->next = call_func(i->call.name,e,curr);
+      last->next = call_func(i->call.name,i,e,curr);
 
       return mc;
     case tac_rtn:
@@ -654,9 +674,14 @@ MC* print_result() {
     //print integer result
     MC *mc = malloc(sizeof(MC));
     mc->insn = malloc(sizeof(INSN_BUF));
-    mc->insn = "move $a0 $v1";
+    mc->insn = "#print integer result";
 
     MC* last = find_lst(mc);
+    last->next = malloc(sizeof(MC));
+    last->next->insn = malloc(sizeof(INSN_BUF));
+    last->next->insn = "move $a0 $v1";
+    last = find_lst(last);
+
     last->next = make_syscall(PRINT_INT);
 
     //print newline
@@ -689,11 +714,11 @@ MC* gen_mc(TAC* tac){
             if(strcmp(bindings->name->lexeme,"main")==0){
                 last->next = malloc(sizeof(MC));
                 last->next->insn = malloc(sizeof(INSN_BUF));
-                last->next->insn = "jal main";
-                last = find_lst(last);
-                last->next = call_func(bindings->name,e,global);
+                last->next->insn = "jal _main";
                 last = find_lst(last);
                 last->next = print_result();
+                last = find_lst(last);
+                last->next = call_func(bindings->name,NULL,e,global);
                 return mc;
             }
             bindings = bindings->next;

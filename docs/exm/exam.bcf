@@ -2344,11 +2344,11 @@
     <bcf:datasource type="file" datatype="bibtex" glob="false">lib.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="1">cooper2011engineering</bcf:citekey>
-    <bcf:citekey order="2">aho1986compilers</bcf:citekey>
-    <bcf:citekey order="3">cfg</bcf:citekey>
-    <bcf:citekey order="4">price1995mips</bcf:citekey>
-    <bcf:citekey order="5">compilers</bcf:citekey>
+    <bcf:citekey order="1">vilk_berger</bcf:citekey>
+    <bcf:citekey order="2">10.1145/1542476.1542521</bcf:citekey>
+    <bcf:citekey order="3">10.1007/978-3-540-45070-2_16</bcf:citekey>
+    <bcf:citekey order="4">10.1145/2491509.2491511</bcf:citekey>
+    <bcf:citekey order="5">google_accounts</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

@@ -1,0 +1,82 @@
+ @misc{vilk_berger, title={Plasma-umass/bleak: Bleak: Automatically debugging memory leaks in web applications}, url={https://github.com/plasma-umass/BLeak}, journal={GitHub}, author={Vilk, John and Berger, Emery D.}},
+
+@inproceedings{10.1145/1542476.1542521,
+author = {Novark, Gene and Berger, Emery D. and Zorn, Benjamin G.},
+title = {Efficiently and Precisely Locating Memory Leaks and Bloat},
+year = {2009},
+isbn = {9781605583921},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi-org.ezproxy1.bath.ac.uk/10.1145/1542476.1542521},
+doi = {10.1145/1542476.1542521},
+abstract = {Inefficient use of memory, including leaks and bloat, remain a significant challenge for C and C++ developers. Applications with these problems become slower over time as their working set grows and can become unresponsive. At the same time, memory leaks and bloat remain notoriously difficult to debug, and comprise a large number of reported bugs in mature applications. Previous tools for diagnosing memory inefficiencies-based on garbage collection, binary rewriting, or code sampling-impose high overheads (up to 100X) or generate many false alarms.This paper presents Hound, a runtime system that helps track down the sources of memory leaks and bloat in C and C++ applications. Hound employs data sampling, a staleness-tracking approach based on a novel heap organization, to make it both precise and efficient. Hound has no false positives, and its runtime and space overhead are low enough that it can be used in deployed applications. We demonstrate Hound's efficacy across a suite of synthetic benchmarks and real applications.},
+booktitle = {Proceedings of the 30th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+pages = {397–407},
+numpages = {11},
+keywords = {memory leak detection, dynamic memory allocation, heap profiling, virtual compaction, hound},
+location = {Dublin, Ireland},
+series = {PLDI '09}
+}
+
+  
+
+@article{10.1145/1543135.1542521,
+author = {Novark, Gene and Berger, Emery D. and Zorn, Benjamin G.},
+title = {Efficiently and Precisely Locating Memory Leaks and Bloat},
+year = {2009},
+issue_date = {June 2009},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {44},
+number = {6},
+issn = {0362-1340},
+url = {https://doi-org.ezproxy1.bath.ac.uk/10.1145/1543135.1542521},
+doi = {10.1145/1543135.1542521},
+abstract = {Inefficient use of memory, including leaks and bloat, remain a significant challenge for C and C++ developers. Applications with these problems become slower over time as their working set grows and can become unresponsive. At the same time, memory leaks and bloat remain notoriously difficult to debug, and comprise a large number of reported bugs in mature applications. Previous tools for diagnosing memory inefficiencies-based on garbage collection, binary rewriting, or code sampling-impose high overheads (up to 100X) or generate many false alarms.This paper presents Hound, a runtime system that helps track down the sources of memory leaks and bloat in C and C++ applications. Hound employs data sampling, a staleness-tracking approach based on a novel heap organization, to make it both precise and efficient. Hound has no false positives, and its runtime and space overhead are low enough that it can be used in deployed applications. We demonstrate Hound's efficacy across a suite of synthetic benchmarks and real applications.},
+journal = {SIGPLAN Not.},
+month = {jun},
+pages = {397–407},
+numpages = {11},
+keywords = {memory leak detection, hound, virtual compaction, dynamic memory allocation, heap profiling}
+},
+@InProceedings{10.1007/978-3-540-45070-2_16,
+author="Mitchell, Nick
+and Sevitsky, Gary",
+editor="Cardelli, Luca",
+title="LeakBot: An Automated and Lightweight Tool for Diagnosing Memory Leaks in Large Java Applications",
+booktitle="ECOOP 2003 -- Object-Oriented Programming",
+year="2003",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="351--377",
+abstract="Despite Java's automatic reclamation of memory, memory leaks remain an important problem. For example, we frequently encounter memory leaks that cause production servers to crash. These servers represent an increasingly common class of Java applications: they are large scale and they make heavy use of frameworks. For these applications, existing tools require too much expertise, and, even for experts, require many hours interpreting low-level details. In addition, they are often too expensive to use in practice. We present an automated, adaptive, and scalable tool for diagnosing memory leaks, called LeakBot.",
+isbn="978-3-540-45070-2"
+},
+@article{10.1145/2491509.2491511,
+author = {Xu, Guoqing and Rountev, Atanas},
+title = {Precise Memory Leak Detection for Java Software Using Container Profiling},
+year = {2013},
+issue_date = {July 2013},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {22},
+number = {3},
+issn = {1049-331X},
+url = {https://doi.org/10.1145/2491509.2491511},
+doi = {10.1145/2491509.2491511},
+abstract = {A memory leak in a Java program occurs when object references that are no longer needed are unnecessarily maintained. Such leaks are difficult to detect because static analysis typically cannot precisely identify these redundant references, and existing dynamic leak detection tools track and report fine-grained information about individual objects, producing results that are usually hard to interpret and lack precision.In this article we introduce a novel container-based heap-tracking technique, based on the fact that many memory leaks in Java programs occur due to incorrect uses of containers, leading to containers that keep references to unused data entries. The novelty of the described work is twofold: (1) instead of tracking arbitrary objects and finding leaks by analyzing references to unused objects, the technique tracks only containers and directly identifies the source of the leak, and (2) the technique computes a confidence value for each container based on a combination of its memory consumption and its elements' staleness (time since last retrieval), while previous approaches do not consider such combined metrics. Our experimental results show that the reports generated by the proposed technique can be very precise: for two bugs reported by Sun, a known bug in SPECjbb 2000, and an example bug from IBM developerWorks, the top containers in the reports include the containers that leak memory.},
+journal = {ACM Trans. Softw. Eng. Methodol.},
+month = {jul},
+articleno = {17},
+numpages = {28},
+keywords = {leaking confidence, Memory leaks, container profiling}
+},
+ @misc{google_accounts, title={Bug: Destroying Google Map Instance Never Frees Memory}, url={https://issuetracker.google.com/issues/35821412?pli=1}, journal={Google Accounts}, publisher={Google}} 
+
+  
+
+
+
+  
+
+ 

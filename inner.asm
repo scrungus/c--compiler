@@ -31,8 +31,7 @@ sw $t1, 0($sp)
 # Saving frame
 # End of saving frame
 
-li $a0,3
-li $a1,1
+li $a0,2
 jal f
 # Restoring frame
 lw $ra 4($sp)
@@ -43,18 +42,42 @@ jr $ra
 
 f:
 # Creating new frame
-addiu $sp, $sp -20
+addiu $sp, $sp -16
 sw $ra, 4($sp)
-li $t1, 20
+li $t1, 16
 sw $t1, 0($sp)
 # End of creating frame
 
 move $t0 $a0
-move $t1 $a1
-move $t0,$t1
-move $t1,$t0
+# Saving frame
+
+sw $t0 12($sp)
+# End of saving frame
+
+li $a0,2
+jal inner
+# Restoring frame
+
+lw $t0  16($sp)
+lw $ra 4($sp)
+# End of restoring frame
+
+addiu $sp, $sp 16
+jr $ra
+jr $ra
+inner:
+# Creating new frame
+addiu $sp, $sp -16
+sw $ra, 4($sp)
+li $t1, 16
+sw $t1, 0($sp)
+# End of creating frame
+
+move $t0 $a0
+move $t0,$t0
+lw $t1, 4($sp)
 add $t2,$t0,$t1
 move $v1 $t2
-addiu $sp, $sp 20
+addiu $sp, $sp 16
 jr $ra
 jr $ra
